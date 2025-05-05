@@ -26,9 +26,12 @@ public class SemanticAnalyzer {
         switch (stmt.getType()) {
             case "Atribuicao" -> analyzeAssignment(stmt);
             case "c_channel" -> analyzeChannel(stmt);
+            case "send" -> analyzeSend(stmt);
+            case "receive" -> analyzeReceive(stmt);
             case "Comentario" -> {
                 // ignora comentários
             }
+
             default -> throw new RuntimeException("Tipo de instrucao desconhecido: " + stmt.getType());
         }
     }
@@ -57,6 +60,27 @@ public class SemanticAnalyzer {
 
         if (!symbolTable.isDeclared(comp1)) symbolTable.declare(comp1, "computador");
         if (!symbolTable.isDeclared(comp2)) symbolTable.declare(comp2, "computador");
+    }
+    private void analyzeSend(ASTNode stmt) {
+        String canal = stmt.getValue();
+        if (!symbolTable.isDeclared(canal)) {
+            throw new RuntimeException("Canal não declarado: " + canal);
+        }
+        String valor = stmt.getChildren().get(0).getValue();
+        if (!valor.matches("\\d+") && !symbolTable.isDeclared(valor)) {
+            throw new RuntimeException("Valor a ser enviado não declarado: " + valor);
+        }
+    }
+
+    private void analyzeReceive(ASTNode stmt) {
+        String canal = stmt.getValue();
+        String var = stmt.getChildren().get(0).getValue();
+        if (!symbolTable.isDeclared(canal)) {
+            throw new RuntimeException("Canal não declarado: " + canal);
+        }
+        if (!symbolTable.isDeclared(var)) {
+            symbolTable.declare(var, "int"); // declaração implícita na recepção
+        }
     }
 
     private boolean isLiteralOrDeclared(String value) {

@@ -5,11 +5,12 @@ import minipar.semantic.SymbolTable;
 
 import java.util.HashMap;
 import java.util.Map;
-
 public class Interpreter {
 
     private final SymbolTable symbolTable = new SymbolTable();
     private final Map<String, Integer> memory = new HashMap<>();
+    private final Map<String, Canal> canais = new HashMap<>();
+    private static int portaAtual = 5000;
 
     public void execute(ASTNode root) {
         if (!root.getType().equals("Programa")) {
@@ -18,6 +19,36 @@ public class Interpreter {
         for (ASTNode bloco : root.getChildren()) {
             executeBlock(bloco);
         }
+    }
+
+    private void executeSend(ASTNode stmt) {
+        String canal = stmt.getValue();
+        Canal c = canais.get(canal);
+        if (c == null) throw new RuntimeException("Canal '" + canal + "' não existe");
+
+        String mensagem = stmt.getChildren().get(0).getValue();
+        if (memory.containsKey(mensagem)) {
+            mensagem = String.valueOf(memory.get(mensagem));
+        }
+        System.out.println("[DEBUG] Enviando para canal " + canal + " valor: " + mensagem);
+        c.send(mensagem);
+    }
+
+    private void executeReceive(ASTNode stmt) {
+        String canal = stmt.getValue();
+        String variavel = stmt.getChildren().get(0).getValue();
+        Canal c = canais.get(canal);
+        if (c == null) throw new RuntimeException("Canal '" + canal + "' não existe");
+
+        System.out.println("[DEBUG] Recebendo de canal " + canal);
+
+        String recebido = c.receive();
+
+        System.out.println("[DEBUG] Recebendo de canal " + canal);
+
+        int valor = Integer.parseInt(recebido);
+        memory.put(variavel, valor);
+        symbolTable.declare(variavel, "int");
     }
 
     private void executeBlock(ASTNode block) {
@@ -55,6 +86,8 @@ public class Interpreter {
             case "Atribuicao" -> executeAssignment(stmt);
             case "Comentario" -> {} // Ignora
             case "c_channel" -> executeChannelDeclaration(stmt);
+            case "send" -> executeSend(stmt);
+            case "receive" -> executeReceive(stmt);
             default -> throw new RuntimeException("Instrucao nao suportada: " + stmt.getType());
         }
     }
@@ -86,8 +119,10 @@ public class Interpreter {
         symbolTable.declare(comp1, "computador");
         symbolTable.declare(comp2, "computador");
 
-        System.out.println("Canal criado: " + canal + " entre " + comp1 + " e " + comp2);
-    }
+        Canal c = new Canal(canal, portaAtual++);
+        canais.put(canal, c);
+
+        System.out.println("Canal criado: " + canal + " entre " + comp1 + " e " + comp2 + " na porta " + c.getPorta());}
 
     public SymbolTable getSymbolTable() {
         return symbolTable;
@@ -96,4 +131,5 @@ public class Interpreter {
     public Map<String, Integer> getMemory() {
         return memory;
     }
+
 }

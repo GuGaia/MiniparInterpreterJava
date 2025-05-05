@@ -46,8 +46,10 @@ public class Parser {
             Token next = peek();
             if (next != null && next.getValue().equals("=")) {
                 return parseAssignment();
+            } else if (next != null && next.getValue().equals(".")) {
+                return parseChannelOperation();
             } else {
-                throw error("Atribuicao invalida: esperado '=' apos identificador");
+                throw error("Atribuiçao invalida ou comando esperado ou desconhecido após '" + token.getValue() + "'");
             }
         } else if (token.getType() == TokenType.KEYWORD && token.getValue().equals("c_channel")) {
             return parseChannelDeclaration();
@@ -77,6 +79,27 @@ public class Parser {
         node.addChild(new ASTNode("Comp2", comp2.getValue()));
         return node;
     }
+    private ASTNode parseChannelOperation() {
+        Token canal = expect(TokenType.IDENTIFIER); // ex: "canal1"
+        expect(TokenType.OPERATOR, ".");           // ex: "."
+        Token operacao = expect(TokenType.IDENTIFIER); // ex: "send" ou "receive"
+        expect(TokenType.DELIMITER, "(");          // "("
+        Token argumento = expect(TokenType.IDENTIFIER, TokenType.NUMBER);
+        expect(TokenType.DELIMITER, ")");          // ")"
+
+        ASTNode node = new ASTNode(operacao.getValue(), canal.getValue());
+
+        if (operacao.getValue().equals("send")) {
+            node.addChild(new ASTNode("Valor", argumento.getValue()));
+        } else if (operacao.getValue().equals("receive")) {
+            node.addChild(new ASTNode("Variavel", argumento.getValue()));
+        } else {
+            throw error("Operação desconhecida: " + operacao.getValue());
+        }
+
+        return node;
+    }
+
 
     // === Utilitários ===
 
