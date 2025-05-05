@@ -1,5 +1,6 @@
 package minipar;
 
+import minipar.interpreter.Interpreter;
 import minipar.lexer.*;
 import minipar.parser.*;
 import minipar.semantic.*;
@@ -23,6 +24,7 @@ public class Main {
         SemanticAnalyzer sem = new SemanticAnalyzer();
         sem.analyze(ast);
 
-        sem.getSymbolTable().print();
+        Interpreter interpreter = new Interpreter();
+        interpreter.execute(ast);
     }
 }
