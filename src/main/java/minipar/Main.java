@@ -1,30 +1,49 @@
 package minipar;
 
+import minipar.lexer.Lexer;
+import minipar.lexer.Token;
+import minipar.parser.ASTNode;
+import minipar.parser.Parser;
+import minipar.semantic.SemanticAnalyzer;
 import minipar.interpreter.Interpreter;
-import minipar.lexer.*;
-import minipar.parser.*;
-import minipar.semantic.*;
 
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 
 public class Main {
-    public static void main(String[] args) throws Exception {
-        String code = Files.readString(Paths.get("programs/test1.mpr"));
-        Lexer lexer = new Lexer(code);
-        List<Token> tokens = lexer.tokenize();
+    public static void main(String[] args) {
+        try {
+            // Caminho do arquivo de teste
+            String caminho = "programs/test1.mpr";
 
-        Parser parser = new Parser(tokens);
-        ASTNode ast = parser.parseProgram();
+            // Leitura do código
+            String codigo = Files.readString(Path.of(caminho));
 
-        System.out.println("== AST ==");
-        ast.print("");
+            // Etapa 1 - Análise léxica
+            Lexer lexer = new Lexer(codigo);
+            List<Token> tokens = lexer.tokenize();
 
-        SemanticAnalyzer sem = new SemanticAnalyzer();
-        sem.analyze(ast);
+            // Etapa 2 - Análise sintática
+            Parser parser = new Parser(tokens);
+            ASTNode ast = parser.parseProgram();
 
-        Interpreter interpreter = new Interpreter();
-        interpreter.execute(ast);
+            // Opcional: imprimir AST
+            System.out.println("=== Árvore Sintática (AST) ===");
+            ast.print("");
+
+            // Etapa 3 - Análise semântica
+            SemanticAnalyzer sem = new SemanticAnalyzer();
+            sem.analyze(ast);
+
+            // Etapa 4 - Interpretação
+            System.out.println("\n=== Execução ===");
+            Interpreter interpreter = new Interpreter();
+            interpreter.execute(ast);
+
+        } catch (Exception e) {
+            System.err.println("Erro: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

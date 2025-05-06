@@ -8,7 +8,7 @@ public class Lexer {
     private final List<Token> tokens = new ArrayList<>();
     private final Map<Pattern, TokenType> patterns = new LinkedHashMap<>();
     private final Set<String> keywords = Set.of(
-            "programa_minipar", "SEQ", "PAR", "if", "else", "while", "c_channel"
+            "programa_minipar", "SEQ", "PAR", "if", "else", "while", "c_channel", "print"
     );
     public Lexer(String source) {
         this.source = source;
@@ -20,7 +20,7 @@ public class Lexer {
         patterns.put(Pattern.compile("^\\d+"), TokenType.NUMBER);
         patterns.put(Pattern.compile("^\"[^\"]*\""), TokenType.STRING);
         patterns.put(Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*"), TokenType.IDENTIFIER);
-        patterns.put(Pattern.compile("^[+\\-*/=<>!]=?|^==|^!=|^\\."), TokenType.OPERATOR); // ponto agora é operador
+        patterns.put(Pattern.compile("^(==|!=|<=|>=|[+\\-*/=<>])|^\\."), TokenType.OPERATOR); // ponto agora é operador
         patterns.put(Pattern.compile("^[(){},]"), TokenType.DELIMITER);
         patterns.put(Pattern.compile("^\\s+"), TokenType.WHITESPACE);
     }

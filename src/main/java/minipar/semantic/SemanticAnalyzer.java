@@ -28,6 +28,7 @@ public class SemanticAnalyzer {
             case "c_channel" -> analyzeChannel(stmt);
             case "send" -> analyzeSend(stmt);
             case "receive" -> analyzeReceive(stmt);
+            case "print" -> analyzePrint(stmt);
             case "Comentario" -> {
                 // ignora comentários
             }
@@ -43,9 +44,7 @@ public class SemanticAnalyzer {
         }
 
         ASTNode expr = stmt.getChildren().get(1);
-        if (!isLiteralOrDeclared(expr.getValue())) {
-            throw new RuntimeException("Expressao invalida ou variavel não declarada: " + expr.getValue());
-        }
+        validateExpression(expr);
     }
 
     private void analyzeChannel(ASTNode stmt) {
@@ -80,6 +79,29 @@ public class SemanticAnalyzer {
         }
         if (!symbolTable.isDeclared(var)) {
             symbolTable.declare(var, "int"); // declaração implícita na recepção
+        }
+    }
+
+    private void analyzePrint(ASTNode stmt) {
+        String arg = stmt.getChildren().get(0).getValue();
+        if (!arg.matches("\\d+") && !arg.startsWith("\"") && !symbolTable.isDeclared(arg)) {
+            throw new RuntimeException("Variavel não declarada: " + arg);
+        }
+    }
+
+    private void validateExpression(ASTNode expr) {
+        switch (expr.getType()) {
+            case "Valor" -> {
+                String val = expr.getValue();
+                if (!val.matches("\\d+") && !symbolTable.isDeclared(val)) {
+                    throw new RuntimeException("Variável não declarada: " + val);
+                }
+            }
+            case "BinOp" -> {
+                validateExpression(expr.getChildren().get(0)); // lado esquerdo
+                validateExpression(expr.getChildren().get(1)); // lado direito
+            }
+            default -> throw new RuntimeException("Expressão inválida: " + expr.getType());
         }
     }
 

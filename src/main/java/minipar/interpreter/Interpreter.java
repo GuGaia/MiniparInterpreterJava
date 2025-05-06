@@ -86,26 +86,28 @@ public class Interpreter {
             case "c_channel" -> executeChannelDeclaration(stmt);
             case "send" -> executeSend(stmt);
             case "receive" -> executeReceive(stmt);
+            case "print" -> executePrint(stmt);
             default -> throw new RuntimeException("Instrucao nao suportada: " + stmt.getType());
         }
     }
 
     private void executeAssignment(ASTNode stmt) {
         String var = stmt.getChildren().get(0).getValue();
-        String expr = stmt.getChildren().get(1).getValue();
-        int value;
-
-        if (expr.matches("\\d+")) {
-            value = Integer.parseInt(expr);
-        } else if (memory.containsKey(expr)) {
-            value = memory.get(expr);
-        } else {
-            throw new RuntimeException("Variavel nao declarada ou valor invalido: " + expr);
-        }
+        ASTNode expr = stmt.getChildren().get(1);
+        int value = avaliarExpressao(expr);
 
         memory.put(var, value);
         symbolTable.declare(var, "int");
         System.out.println(var + " = " + value);
+    }
+
+    private void executePrint(ASTNode stmt) {
+        String valor = stmt.getChildren().get(0).getValue();
+        if (memory.containsKey(valor)) {
+            System.out.println(memory.get(valor));
+        } else {
+            System.out.println(valor.replaceAll("^\"|\"$", "")); // remove aspas se for string
+        }
     }
 
     private void executeChannelDeclaration(ASTNode stmt) {
@@ -128,6 +130,29 @@ public class Interpreter {
 
     public Map<String, Integer> getMemory() {
         return memory;
+    }
+
+    private int avaliarExpressao(ASTNode node) {
+        return switch (node.getType()) {
+            case "Valor" -> {
+                String val = node.getValue();
+                if (val.matches("\\d+")) yield Integer.parseInt(val);
+                else if (memory.containsKey(val)) yield memory.get(val);
+                else throw new RuntimeException("Variável não declarada: " + val);
+            }
+            case "BinOp" -> {
+                int left = avaliarExpressao(node.getChildren().get(0));
+                int right = avaliarExpressao(node.getChildren().get(1));
+                yield switch (node.getValue()) {
+                    case "+" -> left + right;
+                    case "-" -> left - right;
+                    case "*" -> left * right;
+                    case "/" -> right == 0 ? 0 : left / right;
+                    default -> throw new RuntimeException("Operador inválido: " + node.getValue());
+                };
+            }
+            default -> throw new RuntimeException("Expressão inválida: " + node.getType());
+        };
     }
 
 }

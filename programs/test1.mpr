@@ -1,0 +1,26 @@
+programa_minipar
+SEQ
+# Declara canal de comunicação entre cliente e servidor
+c_channel calculadora computador_1 computador_2
+
+PAR
+SEQ
+# Cliente
+op = 1
+v1 = 20
+v2 = 5
+calculadora.send(op)
+calculadora.send(v1)
+calculadora.send(v2)
+calculadora.receive(resultado_cliente)
+
+SEQ
+# Servidor
+calculadora.receive(operacao)
+calculadora.receive(n1)
+calculadora.receive(n2)
+resultado = 0
+# Simulação da operação (somente soma se op = 1)
+resultado = n1
+resultado = resultado + n2
+calculadora.send(resultado)

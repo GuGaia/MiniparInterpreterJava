@@ -29,29 +29,37 @@ public class Parser {
 
     private ASTNode parseBlock() {
         Token token = current();
+
         if (token.getType() == TokenType.KEYWORD && token.getValue().equals("SEQ")) {
-            consume();
+            consume(); // consome SEQ
             ASTNode seqNode = new ASTNode("SEQ", "");
-            while (!isAtEnd() && !peekIs("PAR") && !peekIs("EOF")) {
-                ASTNode stmt = parseStatement();
-                seqNode.addChild(stmt);
+            while (!isAtEnd()) {
+                if (current().getType() == TokenType.KEYWORD &&
+                        (current().getValue().equals("SEQ") || current().getValue().equals("PAR"))) {
+                    break; // para o bloco atual
+                }
+                seqNode.addChild(parseStatement());
             }
             return seqNode;
+
         } else if (token.getType() == TokenType.KEYWORD && token.getValue().equals("PAR")) {
-            consume();
+            consume(); // consome PAR
             ASTNode parNode = new ASTNode("PAR", "");
-            while (!isAtEnd() && !peekIs("SEQ") && !peekIs("EOF")) {
-                try {
+            while (!isAtEnd()) {
+                if (current().getType() == TokenType.KEYWORD &&
+                        (current().getValue().equals("SEQ") || current().getValue().equals("PAR"))) {
+                    parNode.addChild(parseBlock()); // permite blocos aninhados dentro do PAR
+                } else {
                     parNode.addChild(parseStatement());
-                } catch (RuntimeException e) {
-                    throw new RuntimeException("Erro dentro do bloco PAR: " + e.getMessage());
                 }
             }
             return parNode;
+
         } else {
             throw error("Esperado SEQ ou PAR");
         }
     }
+
 
     private ASTNode parseStatement() {
         Token token = current();
@@ -64,8 +72,10 @@ public class Parser {
             } else {
                 throw error("Atribuiçao invalida ou comando esperado ou desconhecido após '" + token.getValue() + "'");
             }
-        } else if (token.getType() == TokenType.KEYWORD && token.getValue().equals("c_channel")) {
-            return parseChannelDeclaration();
+        } else if (token.getType() == TokenType.KEYWORD) {
+            if (token.getValue().equals("c_channel")) return parseChannelDeclaration();
+            if (token.getValue().equals("print")) return parsePrint();
+
         } else if (token.getType() == TokenType.COMMENT) {
             return new ASTNode("Comentario", consume().getValue());
         }
@@ -73,12 +83,12 @@ public class Parser {
     }
 
     private ASTNode parseAssignment() {
-        Token id = expect(TokenType.IDENTIFIER);
+        Token var = expect(TokenType.IDENTIFIER);
         expect(TokenType.OPERATOR, "=");
-        Token expr = expect(TokenType.IDENTIFIER, TokenType.NUMBER);
-        ASTNode node = new ASTNode("Atribuicao", "=");
-        node.addChild(new ASTNode("ID", id.getValue()));
-        node.addChild(new ASTNode("Expr", expr.getValue()));
+        ASTNode expr = parseExpression();
+        ASTNode node = new ASTNode("Atribuicao", "");
+        node.addChild(new ASTNode("Variavel", var.getValue()));
+        node.addChild(expr);
         return node;
     }
 
@@ -112,9 +122,77 @@ public class Parser {
 
         return node;
     }
+    private ASTNode parsePrint() {
+        expect(TokenType.KEYWORD, "print");
+        expect(TokenType.DELIMITER, "(");
+        Token argumento = expect(TokenType.IDENTIFIER, TokenType.NUMBER, TokenType.STRING);
+        expect(TokenType.DELIMITER, ")");
 
+        ASTNode node = new ASTNode("print", "");
+        node.addChild(new ASTNode("Valor", argumento.getValue()));
+        return node;
+    }
+    private ASTNode parseExpression() {
+        return parseTerm();
+    }
+
+    private ASTNode parseTerm() {
+        ASTNode node = parseFactor();
+
+        while (!isAtEnd() && (match("+") || match("-"))) {
+            String op = previous().getValue();
+            ASTNode operador = new ASTNode("BinOp", op);
+            operador.addChild(node); // filho esquerdo
+            operador.addChild(parseFactor()); // filho direito
+            node = operador;
+        }
+        return node;
+    }
+
+    private ASTNode parseFactor() {
+        ASTNode node = parsePrimary();
+
+        while (!isAtEnd() && (match("*") || match("/"))) {
+            String op = previous().getValue();
+            ASTNode operador = new ASTNode("BinOp", op);
+            operador.addChild(node); // filho esquerdo
+            operador.addChild(parsePrimary()); // filho direito
+            node = operador;
+        }
+
+        return node;
+    }
+
+    private ASTNode parsePrimary() {
+        Token token = current();
+
+        if (match("(")) {
+            ASTNode expr = parseExpression();
+            expect(TokenType.DELIMITER, ")");
+            return expr;
+        }
+
+        if (token.getType() == TokenType.NUMBER || token.getType() == TokenType.IDENTIFIER) {
+            consume();
+            return new ASTNode("Valor", token.getValue());
+        }
+
+        throw error("Expressão inválida");
+    }
 
     // === Utilitários ===
+
+    private boolean match(String value) {
+        if (!isAtEnd() && current().getValue().equals(value)) {
+            consume();
+            return true;
+        }
+        return false;
+    }
+
+    private Token previous() {
+        return tokens.get(position - 1);
+    }
 
     private Token current() {
         return tokens.get(position);
