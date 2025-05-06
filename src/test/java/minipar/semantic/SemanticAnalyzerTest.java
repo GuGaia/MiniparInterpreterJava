@@ -46,7 +46,8 @@ class SemanticAnalyzerTest {
 
         SemanticAnalyzer analyzer = new SemanticAnalyzer();
         Exception e = assertThrows(RuntimeException.class, () -> analyzer.analyze(gerarAST(code)));
-        assertTrue(e.getMessage().contains("variavel não declarada"));
+        System.out.println(e);
+        assertTrue(e.getMessage().contains("Variável não declarada"));
     }
 
     @Test

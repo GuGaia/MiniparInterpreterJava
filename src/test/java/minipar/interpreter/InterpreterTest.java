@@ -85,6 +85,6 @@ class InterpreterTest {
             """;
 
         RuntimeException e = assertThrows(RuntimeException.class, () -> interpretar(code));
-        assertTrue(e.getMessage().contains("variavel não declarada"));
+        assertTrue(e.getMessage().contains("Variável não declarada"));
     }
 }

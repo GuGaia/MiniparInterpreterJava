@@ -17,10 +17,10 @@ class ParserTest {
     @Test
     void testProgramaSEQComAtribuicao() {
         String code = """
-            programa_minipar
-            SEQ
-            x = 5
-            """;
+        programa_minipar
+        SEQ
+        x = 5
+        """;
 
         Parser parser = new Parser(tokenize(code));
         ASTNode ast = parser.parseProgram();
@@ -35,10 +35,14 @@ class ParserTest {
 
         ASTNode atribNode = seqNode.getChildren().get(0);
         assertEquals("Atribuicao", atribNode.getType());
-        assertEquals("=", atribNode.getValue());
         assertEquals(2, atribNode.getChildren().size());
+
+        assertEquals("Variavel", atribNode.getChildren().get(0).getType());
         assertEquals("x", atribNode.getChildren().get(0).getValue());
-        assertEquals("5", atribNode.getChildren().get(1).getValue());
+
+        ASTNode valorNode = atribNode.getChildren().get(1);
+        assertEquals("Valor", valorNode.getType());
+        assertEquals("5", valorNode.getValue());
     }
 
     @Test
