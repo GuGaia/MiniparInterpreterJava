@@ -9,7 +9,7 @@ public class Lexer {
     private final List<Token> tokens = new ArrayList<>();
     private final Map<Pattern, TokenType> patterns = new LinkedHashMap<>();
     private final Set<String> keywords = Set.of(
-            "programa_minipar", "SEQ", "PAR", "if", "else", "while", "c_channel", "print"
+            "programa_minipar", "SEQ", "PAR", "if", "else", "while", "c_channel", "print", "def", "return"
     );
     public Lexer(String source) {
         this.source = source;

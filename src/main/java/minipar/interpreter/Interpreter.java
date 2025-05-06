@@ -1,15 +1,19 @@
 package minipar.interpreter;
 
+import minipar.exceptions.ReturnException;
 import minipar.parser.ASTNode;
 import minipar.semantic.SymbolTable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 public class Interpreter {
 
     private final SymbolTable symbolTable = new SymbolTable();
     private final Map<String, Integer> memory = new HashMap<>();
     private final Map<String, Canal> canais = new HashMap<>();
+    private final Map<String, ASTNode> functions = new HashMap<>();
     private static int portaAtual = 5000;
 
     public void execute(ASTNode root) {
@@ -51,7 +55,7 @@ public class Interpreter {
 
     private void executeBlock(ASTNode block) {
         switch (block.getType()) {
-            case "SEQ" -> executeSequential(block);
+            case "SEQ", "Bloco" -> executeSequential(block);
             case "PAR" -> executeParallel(block);
             default -> throw new RuntimeException("Tipo de bloco desconhecido: " + block.getType());
         }
@@ -89,6 +93,9 @@ public class Interpreter {
             case "print" -> executePrint(stmt);
             case "if" -> executeConditional(stmt);
             case "while" -> executeLoop(stmt);
+            case "def" -> registerFunction(stmt);
+            case "return" -> throw new ReturnException(avaliarExpressao(stmt.getChildren().get(0)));
+            case "ChamadaFuncao" -> avaliarChamadaFuncao(stmt);
             default -> throw new RuntimeException("Instrucao nao suportada: " + stmt.getType());
         }
     }
@@ -163,6 +170,10 @@ public class Interpreter {
             case "Valor" -> {
                 String val = node.getValue();
                 if (val.matches("\\d+")) yield Integer.parseInt(val);
+                else if (val.startsWith("\"") && val.endsWith("\"")) {
+                    System.out.println(val.substring(1, val.length() - 1)); // Exibe sem aspas
+                    yield 0; // valor neutro quando for string literal
+                }
                 else if (memory.containsKey(val)) yield memory.get(val);
                 else throw new RuntimeException("Variável não declarada: " + val);
             }
@@ -174,12 +185,20 @@ public class Interpreter {
                     case "-" -> left - right;
                     case "*" -> left * right;
                     case "/" -> right == 0 ? 0 : left / right;
+                    case "==" -> (left == right) ? 1 : 0;
+                    case "!=" -> (left != right) ? 1 : 0;
+                    case ">"  -> (left > right) ? 1 : 0;
+                    case "<"  -> (left < right) ? 1 : 0;
+                    case ">=" -> (left >= right) ? 1 : 0;
+                    case "<=" -> (left <= right) ? 1 : 0;
                     default -> throw new RuntimeException("Operador inválido: " + node.getValue());
                 };
             }
+            case "ChamadaFuncao" -> avaliarChamadaFuncao(node);
             default -> throw new RuntimeException("Expressão inválida: " + node.getType());
         };
     }
+
     private boolean avaliarExpressaoBooleana(ASTNode node) {
         if (!node.getType().equals("BinOp")) {
             throw new RuntimeException("Condição inválida");
@@ -196,6 +215,53 @@ public class Interpreter {
             case ">=" -> left >= right;
             default -> throw new RuntimeException("Operador inválido em condição: " + node.getValue());
         };
+    }
+    private int avaliarChamadaFuncao(ASTNode node) {
+        String nome = node.getValue();
+        ASTNode func = functions.get(nome);
+        if (func == null) throw new RuntimeException("Função não declarada: " + nome);
+
+        List<String> parametros = new ArrayList<>();
+        for (ASTNode paramNode : func.getChildren()) {
+            if (paramNode.getType().equals("param")) {
+                parametros.add(paramNode.getValue());
+            }
+        }
+
+        List<ASTNode> argumentos = node.getChildren();
+
+        if (parametros.size() != argumentos.size()) {
+            throw new RuntimeException("Número de argumentos inválido para função " + nome);
+        }
+
+        // Salvar escopo atual
+        Map<String, Integer> backup = new HashMap<>(memory);
+
+        // Novo escopo local
+        for (int i = 0; i < parametros.size(); i++) {
+            int val = avaliarExpressao(argumentos.get(i));
+            memory.put(parametros.get(i), val);
+            if (!symbolTable.isDeclared(parametros.get(i))) {
+                symbolTable.declare(parametros.get(i), "int");
+            }
+        }
+
+        try {
+            executeBlock(func.getChildren().get(parametros.size())); // corpo
+        } catch (ReturnException ret) {
+            memory.clear();
+            memory.putAll(backup); // restaurar escopo
+            return ret.valor;
+        }
+
+        memory.clear();
+        memory.putAll(backup); // restaurar escopo
+        return 0; // se não houver return
+    }
+
+    private void registerFunction(ASTNode stmt) {
+        String name = stmt.getValue();
+        functions.put(name, stmt);
     }
 
 }

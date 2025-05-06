@@ -2,6 +2,7 @@ package minipar.parser;
 
 import minipar.lexer.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
@@ -63,22 +64,32 @@ public class Parser {
 
     private ASTNode parseStatement() {
         Token token = current();
+
         if (token.getType() == TokenType.IDENTIFIER) {
             Token next = peek();
+
             if (next != null && next.getValue().equals("=")) {
                 return parseAssignment();
             } else if (next != null && next.getValue().equals(".")) {
                 return parseChannelOperation();
-            } else {
+            } else if (next != null && next.getValue().equals("(")) {
+                return parseFunctionCall();
+            }  else {
                 throw error("Atribuiçao invalida ou comando esperado ou desconhecido após '" + token.getValue() + "'");
             }
-        } else if (token.getType() == TokenType.KEYWORD) {
-            if (token.getValue().equals("c_channel")) return parseChannelDeclaration();
-            else if (token.getValue().equals("print")) return parsePrint();
-            else if (token.getValue().equals("if")) return parseIf();
-            else if (token.getValue().equals("while")) return parseWhile();
-
-        } else if (token.getType() == TokenType.COMMENT) {
+        }
+        if (token.getType() == TokenType.KEYWORD) {
+            return switch (token.getValue()) {
+                case "c_channel" -> parseChannelDeclaration();
+                case "print"     -> parsePrint();
+                case "if"        -> parseIf();
+                case "while"     -> parseWhile();
+                case "def"       -> parseFunction();
+                case "return"    -> parseReturn();
+                default -> throw error("Palavra-chave desconhecida: " + token.getValue());
+            };
+        }
+        if (token.getType() == TokenType.COMMENT) {
             return new ASTNode("Comentario", consume().getValue());
         }
         throw error("Instrucao invalida: " + token.getValue());
@@ -183,7 +194,17 @@ public class Parser {
             return expr;
         }
 
-        if (token.getType() == TokenType.NUMBER || token.getType() == TokenType.IDENTIFIER) {
+        if (token.getType() == TokenType.IDENTIFIER) {
+            // Se for chamada de função
+            if (peekNextIs("(")) {
+                return parseFunctionCall();
+            } else {
+                consume();
+                return new ASTNode("Valor", token.getValue());
+            }
+        }
+
+        if (token.getType() == TokenType.NUMBER  || token.getType() == TokenType.STRING) {
             consume();
             return new ASTNode("Valor", token.getValue());
         }
@@ -196,6 +217,58 @@ public class Parser {
 
     private ASTNode parseWhile() {
         return parseConditional("while");
+    }
+
+    private ASTNode parseFunction() {
+        expect(TokenType.KEYWORD, "def");
+        String name = expect(TokenType.IDENTIFIER).getValue();
+
+        expect(TokenType.DELIMITER, "(");
+        List<String> params = new ArrayList<>();
+        if (!peekIs(")")) {
+            do {
+                params.add(expect(TokenType.IDENTIFIER).getValue());
+            } while (match(","));
+        }
+        expect(TokenType.DELIMITER, ")");
+
+        expect(TokenType.DELIMITER, "{");
+        ASTNode body = new ASTNode("Bloco", "");
+        while (!peekIs("}")) {
+            body.addChild(parseStatement());
+        }
+        expect(TokenType.DELIMITER, "}");
+
+        ASTNode defNode = new ASTNode("def", name);
+        for (String param : params) {
+            defNode.addChild(new ASTNode("param", param));
+        }
+        defNode.addChild(body);
+
+        return defNode;
+    }
+    private ASTNode parseReturn() {
+        expect(TokenType.KEYWORD, "return");
+        ASTNode expr = parseExpression();
+        ASTNode node = new ASTNode("return", "");
+        node.addChild(expr);
+        return node;
+    }
+
+    private ASTNode parseFunctionCall() {
+        String name = expect(TokenType.IDENTIFIER).getValue();
+        expect(TokenType.DELIMITER, "(");
+        List<ASTNode> args = new ArrayList<>();
+        if (!peekIs(")")) {
+            do {
+                args.add(parseExpression());
+            } while (match(","));
+        }
+        expect(TokenType.DELIMITER, ")");
+
+        ASTNode call = new ASTNode("ChamadaFuncao", name);
+        args.forEach(call::addChild);
+        return call;
     }
 
     // === Utilitários ===
@@ -274,5 +347,9 @@ public class Parser {
             case "==", "!=", "<", ">", "<=", ">=" -> true;
             default -> false;
         };
+    }
+    private boolean peekNextIs(String value) {
+        if (position + 1 >= tokens.size()) return false;
+        return tokens.get(position + 1).getValue().equals(value);
     }
 }

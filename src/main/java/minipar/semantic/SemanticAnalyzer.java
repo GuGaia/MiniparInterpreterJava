@@ -2,6 +2,8 @@ package minipar.semantic;
 
 import minipar.parser.ASTNode;
 
+import java.util.List;
+
 public class SemanticAnalyzer {
 
     private final SymbolTable symbolTable = new SymbolTable();
@@ -29,11 +31,11 @@ public class SemanticAnalyzer {
             case "send" -> analyzeSend(stmt);
             case "receive" -> analyzeReceive(stmt);
             case "print" -> analyzePrint(stmt);
-            case "if" -> analyzeConditional(stmt);
-            case "while" -> analyzeConditional(stmt);
-            case "Comentario" -> {
-                // ignora comentários
-            }
+            case "if", "while" -> analyzeConditional(stmt);
+            case "def" -> { /* ignorar por enquanto ou validar nomes únicos */ }
+            case "return" -> validateExpression(stmt.getChildren().get(0));
+            case "ChamadaFuncao" -> validateExpressionList(stmt.getChildren());
+            case "Comentario" -> { /* ignora comentários */ }
 
             default -> throw new RuntimeException("Tipo de instrucao desconhecido: " + stmt.getType());
         }
@@ -100,18 +102,27 @@ public class SemanticAnalyzer {
         switch (expr.getType()) {
             case "Valor" -> {
                 String val = expr.getValue();
-                if (!val.matches("\\d+") && !symbolTable.isDeclared(val)) {
-                    throw new RuntimeException("Variável não declarada: " + val);
-                }
+                if (val.matches("\\d+")) return; // número literal
+                if (val.startsWith("\"") && val.endsWith("\"")) return; // string literal
+                if (!symbolTable.isDeclared(val)) throw new RuntimeException("Variável não declarada: " + val);
             }
             case "BinOp" -> {
                 validateExpression(expr.getChildren().get(0)); // lado esquerdo
                 validateExpression(expr.getChildren().get(1)); // lado direito
             }
+            case "ChamadaFuncao" -> {
+                for (ASTNode arg : expr.getChildren()) {
+                    validateExpression(arg);
+                }
+            }
             default -> throw new RuntimeException("Expressão inválida: " + expr.getType());
         }
     }
-
+    private void validateExpressionList(List<ASTNode> exprs) {
+        for (ASTNode expr : exprs) {
+            validateExpression(expr);
+        }
+    }
 
     private boolean isLiteralOrDeclared(String value) {
         return value.matches("\\d+") || symbolTable.isDeclared(value);
