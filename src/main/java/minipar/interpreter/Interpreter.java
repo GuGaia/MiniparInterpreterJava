@@ -44,8 +44,6 @@ public class Interpreter {
 
         String recebido = c.receive();
 
-        System.out.println("[DEBUG] Recebendo de canal " + canal);
-
         int valor = Integer.parseInt(recebido);
         memory.put(variavel, valor);
         symbolTable.declare(variavel, "int");

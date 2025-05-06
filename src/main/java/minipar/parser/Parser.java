@@ -15,7 +15,15 @@ public class Parser {
     public ASTNode parseProgram() {
         expect(TokenType.KEYWORD, "programa_minipar");
         ASTNode root = new ASTNode("Programa", "programa_minipar");
-        root.addChild(parseBlock());
+        while (!isAtEnd()) {
+            Token token = current();
+            if (token.getType() == TokenType.KEYWORD &&
+                    (token.getValue().equals("SEQ") || token.getValue().equals("PAR"))) {
+                root.addChild(parseBlock());
+            } else {
+                throw error("Esperado bloco SEQ ou PAR após programa-minipar");
+            }
+        }
         return root;
     }
 
@@ -25,14 +33,19 @@ public class Parser {
             consume();
             ASTNode seqNode = new ASTNode("SEQ", "");
             while (!isAtEnd() && !peekIs("PAR") && !peekIs("EOF")) {
-                seqNode.addChild(parseStatement());
+                ASTNode stmt = parseStatement();
+                seqNode.addChild(stmt);
             }
             return seqNode;
         } else if (token.getType() == TokenType.KEYWORD && token.getValue().equals("PAR")) {
             consume();
             ASTNode parNode = new ASTNode("PAR", "");
             while (!isAtEnd() && !peekIs("SEQ") && !peekIs("EOF")) {
-                parNode.addChild(parseStatement());
+                try {
+                    parNode.addChild(parseStatement());
+                } catch (RuntimeException e) {
+                    throw new RuntimeException("Erro dentro do bloco PAR: " + e.getMessage());
+                }
             }
             return parNode;
         } else {
