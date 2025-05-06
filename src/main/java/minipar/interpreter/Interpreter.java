@@ -87,6 +87,8 @@ public class Interpreter {
             case "send" -> executeSend(stmt);
             case "receive" -> executeReceive(stmt);
             case "print" -> executePrint(stmt);
+            case "if" -> executeConditional(stmt);
+            case "while" -> executeLoop(stmt);
             default -> throw new RuntimeException("Instrucao nao suportada: " + stmt.getType());
         }
     }
@@ -97,7 +99,9 @@ public class Interpreter {
         int value = avaliarExpressao(expr);
 
         memory.put(var, value);
-        symbolTable.declare(var, "int");
+        if (!symbolTable.isDeclared(var)) {
+            symbolTable.declare(var, "int");
+        }
         System.out.println(var + " = " + value);
     }
 
@@ -107,6 +111,28 @@ public class Interpreter {
             System.out.println(memory.get(valor));
         } else {
             System.out.println(valor.replaceAll("^\"|\"$", "")); // remove aspas se for string
+        }
+    }
+
+    private void executeConditional(ASTNode stmt) {
+        ASTNode condition = stmt.getChildren().get(0);
+        ASTNode block = stmt.getChildren().get(1);
+
+        if (avaliarExpressaoBooleana(condition)) {
+            for (ASTNode child : block.getChildren()) {
+                executeStatement(child);
+            }
+        }
+    }
+
+    private void executeLoop(ASTNode stmt) {
+        ASTNode condition = stmt.getChildren().get(0);
+        ASTNode block = stmt.getChildren().get(1);
+
+        while (avaliarExpressaoBooleana(condition)) {
+            for (ASTNode child : block.getChildren()) {
+                executeStatement(child);
+            }
         }
     }
 
@@ -152,6 +178,23 @@ public class Interpreter {
                 };
             }
             default -> throw new RuntimeException("Expressão inválida: " + node.getType());
+        };
+    }
+    private boolean avaliarExpressaoBooleana(ASTNode node) {
+        if (!node.getType().equals("BinOp")) {
+            throw new RuntimeException("Condição inválida");
+        }
+
+        int left = avaliarExpressao(node.getChildren().get(0));
+        int right = avaliarExpressao(node.getChildren().get(1));
+        return switch (node.getValue()) {
+            case "==" -> left == right;
+            case "!=" -> left != right;
+            case "<"  -> left < right;
+            case ">"  -> left > right;
+            case "<=" -> left <= right;
+            case ">=" -> left >= right;
+            default -> throw new RuntimeException("Operador inválido em condição: " + node.getValue());
         };
     }
 

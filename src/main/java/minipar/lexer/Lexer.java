@@ -5,6 +5,7 @@ import java.util.regex.*;
 
 public class Lexer {
     private final String source;
+    private final Stack<Integer> indentStack = new Stack<>();
     private final List<Token> tokens = new ArrayList<>();
     private final Map<Pattern, TokenType> patterns = new LinkedHashMap<>();
     private final Set<String> keywords = Set.of(

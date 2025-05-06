@@ -29,6 +29,8 @@ public class SemanticAnalyzer {
             case "send" -> analyzeSend(stmt);
             case "receive" -> analyzeReceive(stmt);
             case "print" -> analyzePrint(stmt);
+            case "if" -> analyzeConditional(stmt);
+            case "while" -> analyzeConditional(stmt);
             case "Comentario" -> {
                 // ignora comentários
             }
@@ -89,6 +91,11 @@ public class SemanticAnalyzer {
         }
     }
 
+    private void analyzeConditional(ASTNode stmt) {
+        validateExpression(stmt.getChildren().get(0));  // condição
+        analyzeBlock(stmt.getChildren().get(1));         // corpo
+    }
+
     private void validateExpression(ASTNode expr) {
         switch (expr.getType()) {
             case "Valor" -> {
@@ -104,6 +111,7 @@ public class SemanticAnalyzer {
             default -> throw new RuntimeException("Expressão inválida: " + expr.getType());
         }
     }
+
 
     private boolean isLiteralOrDeclared(String value) {
         return value.matches("\\d+") || symbolTable.isDeclared(value);

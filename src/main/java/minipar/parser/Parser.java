@@ -74,7 +74,9 @@ public class Parser {
             }
         } else if (token.getType() == TokenType.KEYWORD) {
             if (token.getValue().equals("c_channel")) return parseChannelDeclaration();
-            if (token.getValue().equals("print")) return parsePrint();
+            else if (token.getValue().equals("print")) return parsePrint();
+            else if (token.getValue().equals("if")) return parseIf();
+            else if (token.getValue().equals("while")) return parseWhile();
 
         } else if (token.getType() == TokenType.COMMENT) {
             return new ASTNode("Comentario", consume().getValue());
@@ -133,7 +135,16 @@ public class Parser {
         return node;
     }
     private ASTNode parseExpression() {
-        return parseTerm();
+        ASTNode left = parseTerm();
+        while (!isAtEnd() && isComparisonOperator(current().getValue())) {
+            String op = consume().getValue(); // operador relacional
+            ASTNode right = parseTerm();
+            ASTNode node = new ASTNode("BinOp", op);
+            node.addChild(left);
+            node.addChild(right);
+            left = node;
+        }
+        return left;
     }
 
     private ASTNode parseTerm() {
@@ -179,8 +190,31 @@ public class Parser {
 
         throw error("Expressão inválida");
     }
+    private ASTNode parseIf() {
+        return parseConditional("if");
+    }
+
+    private ASTNode parseWhile() {
+        return parseConditional("while");
+    }
 
     // === Utilitários ===
+    private ASTNode parseConditional(String type) {
+        expect(TokenType.KEYWORD, type);
+        ASTNode condition = parseExpression(); // funciona com operadores relacionais
+        expect(TokenType.DELIMITER, "{");
+
+        ASTNode block = new ASTNode("Bloco", "");
+        while (!peekIs("}")) {
+            block.addChild(parseStatement());
+        }
+        expect(TokenType.DELIMITER, "}");
+
+        ASTNode node = new ASTNode(type, "");
+        node.addChild(condition);
+        node.addChild(block);
+        return node;
+    }
 
     private boolean match(String value) {
         if (!isAtEnd() && current().getValue().equals(value)) {
@@ -234,5 +268,11 @@ public class Parser {
 
     private RuntimeException error(String message) {
         return new RuntimeException("Erro sintatico na linha " + current().getLine() + ": " + message);
+    }
+    private boolean isComparisonOperator(String op) {
+        return switch (op) {
+            case "==", "!=", "<", ">", "<=", ">=" -> true;
+            default -> false;
+        };
     }
 }

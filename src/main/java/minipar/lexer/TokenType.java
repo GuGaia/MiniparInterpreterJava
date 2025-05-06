@@ -10,5 +10,7 @@ public enum  TokenType {
     COMMENT,
     WHITESPACE,
     NEWLINE,
+    INDENT,
+    DEDENT,
     EOF
 }
