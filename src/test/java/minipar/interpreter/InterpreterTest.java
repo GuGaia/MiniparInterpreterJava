@@ -63,11 +63,13 @@ class InterpreterTest {
     @Test
     void testExecucaoPAR() {
         String code = """
-            programa_minipar
-            PAR
-            x = 1
-            y = 2
-            """;
+        programa_minipar
+        PAR
+        SEQ
+        x = 1
+        SEQ
+        y = 2
+        """;
 
         Interpreter interpreter = interpretar(code);
         Map<String, Object> memory = interpreter.getMemory();
@@ -75,6 +77,7 @@ class InterpreterTest {
         assertEquals(1, memory.get("x"));
         assertEquals(2, memory.get("y"));
     }
+
 
     @Test
     void testErroVariavelNaoDeclarada() {
