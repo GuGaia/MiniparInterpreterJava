@@ -70,6 +70,7 @@ public class Interpreter {
     public void executeStatement(ASTNode stmt) {
         switch (stmt.getType()) {
             case "Atribuicao"       -> assignmentExecutor.executeAssignment(stmt);
+            case "AtribuicaoIndice" -> assignmentExecutor.executeIndexAssignment(stmt);
             case "Comentario"       -> {} // Ignora
             case "c_channel"        -> channelExecutor.declareChannel(stmt);
             case "send"             -> channelExecutor.send(stmt);

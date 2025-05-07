@@ -18,6 +18,7 @@ public class StatementParser {
             case "=" -> parseAssignment();
             case "." -> parseChannelOperation();
             case "(" -> parseFunctionCall(parser.expect(TokenType.IDENTIFIER).getValue());
+            case "[" -> parseIndexAssignment();
             default -> throw parser.error("Atribuição inválida ou comando desconhecido após '" + parser.current().getValue() + "'");
         };
     }
@@ -147,4 +148,18 @@ public class StatementParser {
         node.addChild(block);
         return node;
     }
+    private ASTNode parseIndexAssignment() {
+        String varName = parser.expect(TokenType.IDENTIFIER).getValue();
+        parser.expect(TokenType.DELIMITER, "[");
+        ASTNode index = parser.parseExpression();
+        parser.expect(TokenType.DELIMITER, "]");
+        parser.expect(TokenType.OPERATOR, "=");
+        ASTNode value = parser.parseExpression();
+
+        ASTNode node = new ASTNode("AtribuicaoIndice", varName);
+        node.addChild(index);
+        node.addChild(value);
+        return node;
+    }
+
 }

@@ -13,14 +13,12 @@ public class ExpressionValidator {
     public void validateExpression(ASTNode expr) {
         switch (expr.getType()) {
             case "Valor" -> validateLiteralOrVariable(expr.getValue());
-            case "BinOp" -> expr.getChildren().forEach(this::validateExpression);
-            case "ChamadaFuncao", "Lista" -> validateExpressionList(expr.getChildren());
-            case "Indexacao" -> {
-                if (!symbolTable.isDeclared(expr.getValue())) {
-                    throw new RuntimeException("Lista não declarada: " + expr.getValue());
-                }
+            case "BinOp" -> {
                 validateExpression(expr.getChildren().get(0));
+                validateExpression(expr.getChildren().get(1));
             }
+            case "ChamadaFuncao", "Lista" -> expr.getChildren().forEach(this::validateExpression);
+            case "Indexacao" -> validateIndexAccess(expr);
             default -> throw new RuntimeException("Expressão inválida: " + expr.getType());
         }
     }
@@ -30,13 +28,21 @@ public class ExpressionValidator {
     }
 
     private void validateLiteralOrVariable(String val) {
-        if (isLiteral(val)) return;
+        if (val.matches("\\d+")) return; // número literal
+        if (val.startsWith("\"") && val.endsWith("\"")) return; // string
         if (!symbolTable.isDeclared(val)) {
             throw new RuntimeException("Variável não declarada: " + val);
         }
     }
+    private void validateIndexAccess(ASTNode expr) {
+        String varName = expr.getValue(); // Ex: nome da lista
+        if (!symbolTable.isDeclared(varName)) {
+            throw new RuntimeException("Lista não declarada: " + varName);
+        }
+        validateExpression(expr.getChildren().get(0)); // índice
+    }
 
-    private boolean isLiteral(String val) {
-        return val.matches("\\d+") || (val.startsWith("\"") && val.endsWith("\""));
+    public void validateAll(List<ASTNode> nodes) {
+        nodes.forEach(this::validateExpression);
     }
 }

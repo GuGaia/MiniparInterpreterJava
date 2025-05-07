@@ -3,6 +3,7 @@ package minipar.interpreter;
 import minipar.parser.ASTNode;
 import minipar.semantic.SymbolTable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,24 +27,27 @@ public class AssignmentExecutor {
         Object value;
 
         if (expr.getType().equals("Lista")) {
-            List<Integer> lista = evaluator.getLastEvaluatedList(); // já foi avaliada como 0
-            evaluator.evaluate(expr); // reavalia para preencher `lastEvaluatedList`
-            value = evaluator.getLastEvaluatedList();
+            List<Integer> lista = new ArrayList<>();
+            for (ASTNode item : expr.getChildren()) {
+                lista.add(evaluator.evaluate(item));
+            }
+            value = lista;
         } else {
-            value = evaluator.evaluate(expr);
+            value = evaluator.evaluate(expr); // int ou retorno de função
         }
 
         memory.put(var, value);
 
         if (!symbolTable.isDeclared(var)) {
-            symbolTable.declare(var, "int"); // poderia usar "lista" se quiser ser mais preciso
+            String tipo = (value instanceof List) ? "lista" : "int";
+            symbolTable.declare(var, tipo);
         }
     }
 
     public void executeIndexAssignment(ASTNode stmt) {
-        String nome = stmt.getChildren().get(0).getValue();
-        int index = evaluator.evaluate(stmt.getChildren().get(1));
-        int valor = evaluator.evaluate(stmt.getChildren().get(2));
+        String nome = stmt.getValue();
+        int index = evaluator.evaluate(stmt.getChildren().get(0));
+        int valor = evaluator.evaluate(stmt.getChildren().get(1));
 
         if (!memory.containsKey(nome)) throw new RuntimeException("Lista não declarada: " + nome);
 
