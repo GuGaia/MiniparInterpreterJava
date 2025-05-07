@@ -10,12 +10,14 @@ public class ChannelExecutor {
     private final Map<String, Canal> canais;
     private final SymbolTable symbolTable;
     private final Map<String, Object> memory;
+    private final ExpressionEvaluator evaluator;
     private static int portaAtual = 5000;
 
-    public ChannelExecutor(Map<String, Canal> canais, Map<String, Object> memory, SymbolTable symbolTable) {
+    public ChannelExecutor(Map<String, Canal> canais, Map<String, Object> memory, SymbolTable symbolTable, ExpressionEvaluator evaluator) {
         this.canais = canais;
         this.memory = memory;
         this.symbolTable = symbolTable;
+        this.evaluator = evaluator;
     }
 
     public void declareChannel(ASTNode stmt) {
@@ -38,13 +40,11 @@ public class ChannelExecutor {
         Canal c = canais.get(canal);
         if (c == null) throw new RuntimeException("Canal '" + canal + "' não existe");
 
-        String mensagem = stmt.getChildren().get(0).getValue();
-        if (memory.containsKey(mensagem)) {
-            mensagem = String.valueOf(memory.get(mensagem));
-        }
+        ASTNode mensagemNode = stmt.getChildren().get(0);
+        int valor = evaluator.evaluate(mensagemNode); // correto agora
 
-        System.out.println("[DEBUG] Enviando para canal " + canal + " valor: " + mensagem);
-        c.send(mensagem);
+        System.out.println("[DEBUG] Enviando para canal " + canal + " valor: " + valor);
+        c.send(String.valueOf(valor));
     }
 
     public void receive(ASTNode stmt) {

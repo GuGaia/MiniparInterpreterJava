@@ -18,7 +18,7 @@ public class Interpreter {
     // Módulos especializados
     private final ExpressionEvaluator evaluator = new ExpressionEvaluator(memory, null);
     private final AssignmentExecutor assignmentExecutor = new AssignmentExecutor(memory, symbolTable, evaluator);
-    private final ChannelExecutor channelExecutor = new ChannelExecutor(canais, memory, symbolTable);
+    private final ChannelExecutor channelExecutor = new ChannelExecutor(canais, memory, symbolTable, evaluator);
     private final ControlFlowExecutor controlFlowExecutor = new ControlFlowExecutor(this, evaluator);
     private final FunctionExecutor functionExecutor = new FunctionExecutor(functions, memory, symbolTable, this, evaluator);
 
@@ -40,6 +40,7 @@ public class Interpreter {
     }
 
     public void executeBlock(ASTNode block) {
+        System.out.println("[DEBUG] Executando bloco tipo: " + block.getType() + " na thread " + Thread.currentThread().getName());
         switch (block.getType()) {
             case "SEQ", "Bloco" -> executeSequential(block);
             case "PAR" -> executeParallel(block);
@@ -48,6 +49,7 @@ public class Interpreter {
     }
 
     private void executeSequential(ASTNode block) {
+        System.out.println("[THREAD] Iniciando bloco em thread: " + Thread.currentThread().getName());
         for (ASTNode stmt : block.getChildren()) {
             executeStatement(stmt);
         }
@@ -55,8 +57,8 @@ public class Interpreter {
 
     private void executeParallel(ASTNode block) {
         List<Thread> threads = new ArrayList<>();
-        for (ASTNode stmt : block.getChildren()) {
-            Thread thread = new Thread(() -> executeStatement(stmt));
+        for (ASTNode childBlock : block.getChildren()) {
+            Thread thread = new Thread(() -> executeBlock(childBlock));
             thread.start();
             threads.add(thread);
         }
@@ -90,11 +92,14 @@ public class Interpreter {
     }
 
     private void executePrint(ASTNode stmt) {
-        String valor = stmt.getChildren().get(0).getValue();
-        if (memory.containsKey(valor)) {
-            System.out.println(memory.get(valor));
-        } else {
-            System.out.println(valor.replaceAll("^\"|\"$", "")); // remove aspas se for string
+        ASTNode valorNode = stmt.getChildren().get(0);
+        try {
+            int valor = evaluator.evaluate(valorNode);
+            System.out.println(valor);
+        } catch (RuntimeException e) {
+            // Se não for uma expressão numérica válida, tenta imprimir como string
+            String raw = valorNode.getValue();
+            System.out.println(raw.replaceAll("^\"|\"$", "")); // remove aspas
         }
     }
     private void executeImport(ASTNode stmt) {
@@ -125,4 +130,5 @@ public class Interpreter {
     public Map<String, Object> getMemory() {
         return memory;
     }
+
 }
