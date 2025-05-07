@@ -58,30 +58,22 @@ public class ControlFlowExecutor {
             interpreter.executeStatement(child);
         }
     }
-    /// /////////////////////////////////////parei aqui/////////////////////////////////////////////////////////
-    public void executeFor(ASTNode stmt) {
-        String var = stmt.getValue();
-        ASTNode iterableExpr = stmt.getChildren().get(0);
-        ASTNode block = stmt.getChildren().get(1);
+    public void executeFor(ASTNode forNode) {
+        String varName = forNode.getValue(); // Ex: "i"
+        ASTNode inicioNode = forNode.getChildren().get(0);
+        ASTNode fimNode = forNode.getChildren().get(1);
+        ASTNode corpo = forNode.getChildren().get(2);
 
-        Object iterable = evaluator.evaluateRaw(iterableExpr);
+        int inicio = evaluator.evaluate(inicioNode);
+        int fim = evaluator.evaluate(fimNode);
 
-        if (!(iterable instanceof List<?> lista)) {
-            throw new RuntimeException("A expressão em 'for' não é uma lista.");
-        }
-
-        for (Object elem : lista) {
-            if (!(elem instanceof Integer i)) {
-                throw new RuntimeException("Elemento na lista não é inteiro.");
+        for (int i = inicio; i <= fim; i++) {
+            interpreter.getMemory().put(varName, i);
+            if (!interpreter.getSymbolTable().isDeclared(varName)) {
+                interpreter.getSymbolTable().declare(varName, "int");
             }
-
-            memory.put(var, i);
-            if (!symbolTable.isDeclared(var)) {
-                symbolTable.declare(var, "int");
-            }
-
-            for (ASTNode child : block.getChildren()) {
-                interpreter.executeStatement(child);
+            for (ASTNode stmt : corpo.getChildren()) {
+                interpreter.executeStatement(stmt);
             }
         }
     }

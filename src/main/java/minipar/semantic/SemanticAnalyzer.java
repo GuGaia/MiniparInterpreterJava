@@ -23,18 +23,17 @@ public class SemanticAnalyzer {
 
     private void analyzeStatement(ASTNode stmt) {
         switch (stmt.getType()) {
-            case "Atribuicao" -> assignmentValidator.analyzeAssignment(stmt);
-            case "AtribuicaoIndice" -> assignmentValidator.analyzeAssignmentIndex(stmt);
-            case "c_channel" -> channelValidator.analyzeChannel(stmt);
-            case "send" -> channelValidator.analyzeSend(stmt);
-            case "receive" -> channelValidator.analyzeReceive(stmt);
-            case "print" -> analyzePrint(stmt);
-            case "if", "while" -> controlFlowValidator.analyzeConditional(stmt);
-            case "for" -> analyzeForLoop(stmt);
-            case "def" -> {}
-            case "return" -> expressionValidator.validateExpression(stmt.getChildren().get(0));
-            case "ChamadaFuncao" -> expressionValidator.validateExpressionList(stmt.getChildren());
-            case "Comentario" -> {}
+            case "Atribuicao"                   -> assignmentValidator.analyzeAssignment(stmt);
+            case "AtribuicaoIndice"             -> assignmentValidator.analyzeAssignmentIndex(stmt);
+            case "c_channel"                    -> channelValidator.analyzeChannel(stmt);
+            case "send"                         -> channelValidator.analyzeSend(stmt);
+            case "receive"                      -> channelValidator.analyzeReceive(stmt);
+            case "print"                        -> analyzePrint(stmt);
+            case "if", "while"                  -> controlFlowValidator.analyzeConditional(stmt);
+            case "for"                          -> analyzeForLoop(stmt);
+            case "def", "Comentario", "import"  -> {}
+            case "return"                       -> expressionValidator.validateExpression(stmt.getChildren().getFirst());
+            case "ChamadaFuncao"                -> expressionValidator.validateExpressionList(stmt.getChildren());
             default -> throw new RuntimeException("Tipo de instrucao desconhecido: " + stmt.getType());
         }
     }

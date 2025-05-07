@@ -1,9 +1,11 @@
 package minipar.interpreter;
 
 import minipar.exceptions.ReturnException;
-import minipar.parser.ASTNode;
-import minipar.semantic.SymbolTable;
-
+import minipar.lexer.*;
+import minipar.parser.*;
+import minipar.semantic.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class Interpreter {
@@ -82,6 +84,7 @@ public class Interpreter {
             case "def"              -> functionExecutor.register(stmt);
             case "return"           -> throw new ReturnException(evaluator.evaluate(stmt.getChildren().get(0)));
             case "ChamadaFuncao"    -> functionExecutor.call(stmt);
+            case "import"           -> executeImport(stmt);
             default                 -> throw new RuntimeException("Instrução não suportada: " + stmt.getType());
         }
     }
@@ -92,6 +95,26 @@ public class Interpreter {
             System.out.println(memory.get(valor));
         } else {
             System.out.println(valor.replaceAll("^\"|\"$", "")); // remove aspas se for string
+        }
+    }
+    private void executeImport(ASTNode stmt) {
+        String path = stmt.getValue(); // já sem aspas, vindo do parser
+        try {
+            String importedSource = Files.readString(Path.of(path));
+
+            Lexer lexer = new Lexer(importedSource);
+            List<minipar.lexer.Token> importedTokens = lexer.tokenize();
+
+            Parser parser = new Parser(importedTokens);
+            ASTNode importedAst = parser.parseProgram();
+
+            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer();
+            semanticAnalyzer.analyze(importedAst);
+
+            this.execute(importedAst);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao importar arquivo '" + path + "': " + e.getMessage(), e);
         }
     }
 

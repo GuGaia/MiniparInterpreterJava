@@ -2,7 +2,7 @@ package minipar.gui;
 
 import minipar.lexer.*;
 import minipar.parser.*;
-import minipar.semantic.*;
+import minipar.semantic.SemanticAnalyzer;
 import minipar.interpreter.*;
 
 import javax.swing.*;
@@ -15,6 +15,7 @@ public class MiniParGUI extends JFrame {
 
     private JTextArea astArea;
     private JTextArea outputArea;
+    private String codigoFonte = "";
 
     public MiniParGUI() {
         setTitle("MiniPar - Interpretador Visual");
@@ -47,8 +48,6 @@ public class MiniParGUI extends JFrame {
         btnExecutar.addActionListener(e -> executarCodigo());
     }
 
-    private String codigoFonte = "";
-
     private void carregarCodigo() {
         JFileChooser chooser = new JFileChooser();
         int result = chooser.showOpenDialog(this);
@@ -57,7 +56,7 @@ public class MiniParGUI extends JFrame {
             try {
                 codigoFonte = Files.readString(file.toPath());
                 JOptionPane.showMessageDialog(this, "Código carregado com sucesso!");
-            } catch (Exception ex) {
+            } catch (IOException ex) {
                 mostrarErro("Erro ao ler o arquivo: " + ex.getMessage());
             }
         }
@@ -67,23 +66,25 @@ public class MiniParGUI extends JFrame {
         astArea.setText("");
         outputArea.setText("");
         try {
+            // Etapas de compilação e execução
             Lexer lexer = new Lexer(codigoFonte);
             List<Token> tokens = lexer.tokenize();
 
             Parser parser = new Parser(tokens);
             ASTNode ast = parser.parseProgram();
-
             astArea.setText(astToString(ast, ""));
 
             SemanticAnalyzer sem = new SemanticAnalyzer();
             sem.analyze(ast);
 
-            // Redirecionar System.out
+            // Redirecionar saída para capturar o print
             PrintStream originalOut = System.out;
             ByteArrayOutputStream outputCapture = new ByteArrayOutputStream();
             System.setOut(new PrintStream(outputCapture));
 
+            // Criar e configurar interpretador
             Interpreter interpreter = new Interpreter();
+            interpreter.setupFunctionEvaluation();  // importante para chamadas de função e `import`
             interpreter.execute(ast);
 
             System.setOut(originalOut);
@@ -101,7 +102,9 @@ public class MiniParGUI extends JFrame {
     private String astToString(ASTNode node, String indent) {
         StringBuilder sb = new StringBuilder();
         sb.append(indent).append(node.getType());
-        if (!node.getValue().isEmpty()) sb.append(" (").append(node.getValue()).append(")");
+        if (!node.getValue().isEmpty()) {
+            sb.append(" (").append(node.getValue()).append(")");
+        }
         sb.append("\n");
         for (ASTNode child : node.getChildren()) {
             sb.append(astToString(child, indent + "  "));

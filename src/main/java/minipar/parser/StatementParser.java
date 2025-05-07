@@ -32,6 +32,7 @@ public class StatementParser {
             case "def"       -> parseFunction();
             case "for"       -> parseFor();
             case "return"    -> parseReturn();
+            case "import" -> parseImport();
             default -> throw parser.error("Palavra-chave desconhecida: " + keyword);
         };
     }
@@ -179,20 +180,30 @@ public class StatementParser {
     private ASTNode parseFor() {
         parser.expect(TokenType.KEYWORD, "for");
         String varName = parser.expect(TokenType.IDENTIFIER).getValue();
-        parser.expect(TokenType.KEYWORD, "in");
-        ASTNode iterable = parser.parseExpression();
+        parser.expect(TokenType.OPERATOR, "=");
+        ASTNode valorInicial = parser.parseExpression();
+        parser.expect(TokenType.KEYWORD, "to");
+        ASTNode valorFinal = parser.parseExpression();
 
         parser.expect(TokenType.DELIMITER, "{");
-        ASTNode block = new ASTNode("Bloco", "");
+        ASTNode corpo = new ASTNode("Bloco", "");
         while (!parser.peekIs("}")) {
-            block.addChild(parser.parseStatement());
+            corpo.addChild(parser.parseStatement());
         }
         parser.expect(TokenType.DELIMITER, "}");
 
         ASTNode forNode = new ASTNode("for", varName);
-        forNode.addChild(iterable);
-        forNode.addChild(block);
+        forNode.addChild(valorInicial);  // filho 0
+        forNode.addChild(valorFinal);    // filho 1
+        forNode.addChild(corpo);         // filho 2
+
         return forNode;
     }
+    private ASTNode parseImport() {
+        parser.expect(TokenType.KEYWORD, "import");
+        String path = parser.expect(TokenType.STRING).getValue();
+        return new ASTNode("import", path.replace("\"", ""));
+    }
+
 
 }
