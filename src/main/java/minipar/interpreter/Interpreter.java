@@ -78,6 +78,7 @@ public class Interpreter {
             case "print"            -> executePrint(stmt);
             case "if"               -> controlFlowExecutor.executeIf(stmt);
             case "while"            -> controlFlowExecutor.executeWhile(stmt);
+            case "for"              -> controlFlowExecutor.executeFor(stmt);
             case "def"              -> functionExecutor.register(stmt);
             case "return"           -> throw new ReturnException(evaluator.evaluate(stmt.getChildren().get(0)));
             case "ChamadaFuncao"    -> functionExecutor.call(stmt);

@@ -67,33 +67,6 @@ public class ExpressionEvaluator {
         };
     }
 
-    private int evaluateIndex(ASTNode node) {
-        String nome = node.getChildren().get(0).getValue();
-        int index = evaluate(node.getChildren().get(1));
-
-        if (!memory.containsKey(nome)) throw new RuntimeException("Variável não declarada: " + nome);
-
-        Object valor = memory.get(nome);
-        if (!(valor instanceof List<?> lista)) {
-            throw new RuntimeException("Variável '" + nome + "' não é uma lista");
-        }
-
-        if (index < 0 || index >= lista.size()) {
-            throw new RuntimeException("Índice fora dos limites: " + index);
-        }
-
-        Object elemento = lista.get(index);
-        if (!(elemento instanceof Integer)) {
-            throw new RuntimeException("Elemento não é inteiro");
-        }
-
-        return (Integer) elemento;
-    }
-
-    public List<Integer> getLastEvaluatedList() {
-        return lastEvaluatedList;
-    }
-
     public void setFunctionExecutor(FunctionExecutor functionExecutor) {
         this.functionExecutor = functionExecutor;
     }

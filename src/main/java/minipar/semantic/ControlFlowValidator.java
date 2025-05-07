@@ -14,7 +14,13 @@ public class ControlFlowValidator {
     public void analyzeConditional(ASTNode stmt) {
         ASTNode condition = stmt.getChildren().get(0);
         ASTNode body = stmt.getChildren().get(1);
+
         expressionValidator.validateExpression(condition);
         analyzer.analyzeBlock(body);
+
+        if (stmt.getChildren().size() > 2) {
+            ASTNode elseBody = stmt.getChildren().get(2);
+            analyzer.analyzeBlock(elseBody);
+        }
     }
 }

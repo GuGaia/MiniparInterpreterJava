@@ -30,6 +30,7 @@ public class StatementParser {
             case "if"        -> parseConditional("if");
             case "while"     -> parseConditional("while");
             case "def"       -> parseFunction();
+            case "for"       -> parseFor();
             case "return"    -> parseReturn();
             default -> throw parser.error("Palavra-chave desconhecida: " + keyword);
         };
@@ -146,6 +147,20 @@ public class StatementParser {
         ASTNode node = new ASTNode(type, "");
         node.addChild(condition);
         node.addChild(block);
+
+        if (parser.peekIs("else")) {
+            parser.expect(TokenType.KEYWORD, "else");
+            parser.expect(TokenType.DELIMITER, "{");
+
+            ASTNode elseBlock = new ASTNode("Bloco", "");
+            while (!parser.peekIs("}")) {
+                elseBlock.addChild(parser.parseStatement());
+            }
+            parser.expect(TokenType.DELIMITER, "}");
+
+            node.addChild(elseBlock);
+        }
+
         return node;
     }
     private ASTNode parseIndexAssignment() {
@@ -160,6 +175,24 @@ public class StatementParser {
         node.addChild(index);
         node.addChild(value);
         return node;
+    }
+    private ASTNode parseFor() {
+        parser.expect(TokenType.KEYWORD, "for");
+        String varName = parser.expect(TokenType.IDENTIFIER).getValue();
+        parser.expect(TokenType.KEYWORD, "in");
+        ASTNode iterable = parser.parseExpression();
+
+        parser.expect(TokenType.DELIMITER, "{");
+        ASTNode block = new ASTNode("Bloco", "");
+        while (!parser.peekIs("}")) {
+            block.addChild(parser.parseStatement());
+        }
+        parser.expect(TokenType.DELIMITER, "}");
+
+        ASTNode forNode = new ASTNode("for", varName);
+        forNode.addChild(iterable);
+        forNode.addChild(block);
+        return forNode;
     }
 
 }

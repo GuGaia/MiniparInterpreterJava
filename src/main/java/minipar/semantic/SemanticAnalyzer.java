@@ -30,6 +30,7 @@ public class SemanticAnalyzer {
             case "receive" -> channelValidator.analyzeReceive(stmt);
             case "print" -> analyzePrint(stmt);
             case "if", "while" -> controlFlowValidator.analyzeConditional(stmt);
+            case "for" -> analyzeForLoop(stmt);
             case "def" -> {}
             case "return" -> expressionValidator.validateExpression(stmt.getChildren().get(0));
             case "ChamadaFuncao" -> expressionValidator.validateExpressionList(stmt.getChildren());
@@ -51,5 +52,17 @@ public class SemanticAnalyzer {
 
     public SymbolTable getSymbolTable() {
         return symbolTable;
+    }
+
+    private void analyzeForLoop(ASTNode stmt) {
+        ASTNode iterable = stmt.getChildren().get(0);
+        expressionValidator.validateExpression(iterable);
+
+        String var = stmt.getValue();
+        if (!symbolTable.isDeclared(var)) {
+            symbolTable.declare(var, "int"); // variável do loop
+        }
+
+        analyzeBlock(stmt.getChildren().get(1)); // corpo do for
     }
 }

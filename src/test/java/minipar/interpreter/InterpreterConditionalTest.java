@@ -28,6 +28,22 @@ class InterpreterConditionalTest {
         interpreter.execute(ast);
         return interpreter;
     }
+    @Test
+    void testIfElse() {
+        String code = """
+        programa_minipar
+        SEQ
+        a = 3
+        if a > 5 {
+            x = 1
+        } else {
+            x = 2
+        }
+        """;
+
+        Interpreter interpreter = interpretar(code);
+        assertEquals(2, interpreter.getMemory().get("x"));
+    }
 
     @Test
     void testIfTrue() {
