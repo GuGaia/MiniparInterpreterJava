@@ -32,6 +32,7 @@ public class SemanticAnalyzer {
             case "if", "while"                  -> controlFlowValidator.analyzeConditional(stmt);
             case "for"                          -> analyzeForLoop(stmt);
             case "def", "Comentario", "import"  -> {}
+            case "SEQ", "PAR", "Bloco"          -> analyzeBlock(stmt);
             case "return"                       -> expressionValidator.validateExpression(stmt.getChildren().getFirst());
             case "ChamadaFuncao"                -> expressionValidator.validateExpressionList(stmt.getChildren());
             default -> throw new RuntimeException("Tipo de instrucao desconhecido: " + stmt.getType());

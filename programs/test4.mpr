@@ -1,0 +1,56 @@
+programa_minipar
+SEQ
+# Simulando a função XOR com rede neural sem negativos ou decimais
+# Usando lógica simples baseada em múltiplos blocos SEQ
+
+# Entrada 1: (0, 0) -> esperado 0
+x1 = 0
+x2 = 0
+soma = x1 + x2
+if soma == 1 {
+    saida = 1
+} else {
+    saida = 0
+}
+print("Entrada: 0, 0 -> Esperado: 0")
+print("Saída:")
+print(saida)
+
+# Entrada 2: (0, 1) -> esperado 1
+x1 = 0
+x2 = 1
+soma = x1 + x2
+if soma == 1 {
+    saida = 1
+} else {
+    saida = 0
+}
+print("Entrada: 0, 1 -> Esperado: 1")
+print("Saída:")
+print(saida)
+
+# Entrada 3: (1, 0) -> esperado 1
+x1 = 1
+x2 = 0
+soma = x1 + x2
+if soma == 1 {
+    saida = 1
+} else {
+    saida = 0
+}
+print("Entrada: 1, 0 -> Esperado: 1")
+print("Saída:")
+print(saida)
+
+# Entrada 4: (1, 1) -> esperado 0
+x1 = 1
+x2 = 1
+soma = x1 + x2
+if soma == 1 {
+    saida = 1
+} else {
+    saida = 0
+}
+print("Entrada: 1, 1 -> Esperado: 0")
+print("Saída:")
+print(saida)

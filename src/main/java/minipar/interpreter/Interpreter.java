@@ -57,10 +57,10 @@ public class Interpreter {
 
     private void executeParallel(ASTNode block) {
         List<Thread> threads = new ArrayList<>();
-        for (ASTNode childBlock : block.getChildren()) {
-            Thread thread = new Thread(() -> executeBlock(childBlock));
-            thread.start();
-            threads.add(thread);
+        for (ASTNode child : block.getChildren()) {
+            Thread t = new Thread(() -> executeBlock(child));
+            t.start();
+            threads.add(t);
         }
         for (Thread t : threads) {
             try {
@@ -70,7 +70,6 @@ public class Interpreter {
             }
         }
     }
-
     public void executeStatement(ASTNode stmt) {
         switch (stmt.getType()) {
             case "Atribuicao"       -> assignmentExecutor.executeAssignment(stmt);
@@ -93,13 +92,21 @@ public class Interpreter {
 
     private void executePrint(ASTNode stmt) {
         ASTNode valorNode = stmt.getChildren().get(0);
+        String tipo = valorNode.getType();
+        String raw = valorNode.getValue();
+
+        // Se for string literal explícita
+        if (tipo.equals("Valor") && raw.startsWith("\"") && raw.endsWith("\"")) {
+            System.out.println(raw.substring(1, raw.length() - 1)); // remove aspas
+            return;
+        }
+
         try {
             int valor = evaluator.evaluate(valorNode);
             System.out.println(valor);
         } catch (RuntimeException e) {
-            // Se não for uma expressão numérica válida, tenta imprimir como string
-            String raw = valorNode.getValue();
-            System.out.println(raw.replaceAll("^\"|\"$", "")); // remove aspas
+            // Fallback: imprime o valor literal bruto
+            System.out.println(raw);
         }
     }
     private void executeImport(ASTNode stmt) {

@@ -15,7 +15,7 @@ public class Main {
     public static void main(String[] args) {
         try {
             // Caminho do arquivo de teste
-            String caminho = "programs/test1.mpr";
+            String caminho = "programs/test6.mpr";
 
             // Leitura do código
             String codigo = Files.readString(Path.of(caminho));

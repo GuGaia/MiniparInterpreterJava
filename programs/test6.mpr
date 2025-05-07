@@ -1,0 +1,64 @@
+programa_minipar
+SEQ
+# === Inicialização do vetor com 5 elementos fixos ===
+v0 = 4
+v1 = 1
+v2 = 3
+v3 = 2
+v4 = 5
+
+# Print original
+print("Vetor original:")
+print(v0)
+print(v1)
+print(v2)
+print(v3)
+print(v4)
+
+# === Algoritmo de ordenação por bolha (simulando quicksort) ===
+# 5 elementos: v0 a v4
+i = 0
+while i < 4 {
+    j = 0
+    while j < 4 - i {
+        # Troca se v[j] > v[j+1]
+        if j == 0 {
+            if v0 > v1 {
+                temp = v0
+                v0 = v1
+                v1 = temp
+            }
+        }
+        if j == 1 {
+            if v1 > v2 {
+                temp = v1
+                v1 = v2
+                v2 = temp
+            }
+        }
+        if j == 2 {
+            if v2 > v3 {
+                temp = v2
+                v2 = v3
+                v3 = temp
+            }
+        }
+        if j == 3 {
+            if v3 > v4 {
+                temp = v3
+                v3 = v4
+                v4 = temp
+            }
+        }
+        j = j + 1
+    }
+    i = i + 1
+}
+
+# === Resultado Final ===
+print("Vetor ordenado:")
+print(v0)
+print(v1)
+print(v2)
+print(v3)
+print(v4)

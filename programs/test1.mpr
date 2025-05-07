@@ -5,22 +5,44 @@ c_channel calculadora computador_1 computador_2
 
 PAR
 SEQ
-# Cliente
+# Cliente - computador_1
+# Escolhe a operação (1 = soma)
+print("Operações disponíveis: 1=soma, 2=subtração, 3=multiplicação, 4=divisão")
 op = 1
 v1 = 20
 v2 = 5
+
+# Envia dados para o servidor
 calculadora.send(op)
 calculadora.send(v1)
 calculadora.send(v2)
+
+# Aguarda resultado do servidor
 calculadora.receive(resultado_v2)
 
+# Imprime o resultado
+print("Resultado recebido do servidor:")
+print(resultado_v2)
+
 SEQ
-# Servidor
 calculadora.receive(operacao)
 calculadora.receive(n1)
 calculadora.receive(n2)
-# Simulação da operação (somente soma se op = 1)
-resultado = n1
-resultado = resultado + n2
-calculadora.send(resultado)
 
+# Processa a operação (simples: apenas soma se op = 1)
+
+if operacao == 1 {
+    resultado = n1 + n2
+}
+if operacao == 2 {
+    resultado = n1 - n2
+}
+if operacao == 3 {
+    resultado = n1 * n2
+}
+if operacao == 4 {
+    resultado = n1 / n2
+}
+
+
+calculadora.send(resultado)

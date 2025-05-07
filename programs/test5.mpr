@@ -1,0 +1,72 @@
+programa_minipar
+SEQ
+# Codificação do histórico de compras do usuário
+comprado_1 = 1   # Smartphone
+comprado_2 = 1   # Jeans
+comprado_3 = 1   # Micro-ondas
+comprado_4 = 1   # Ficção
+comprado_5 = 0   # Laptop
+comprado_6 = 0   # Tablet
+comprado_7 = 0   # Fones
+comprado_8 = 0   # Camisa
+comprado_9 = 0   # Jaqueta
+comprado_10 = 0  # Sapatos
+comprado_11 = 0  # Geladeira
+comprado_12 = 0  # MaqLavar
+comprado_13 = 0  # ArCond
+comprado_14 = 0  # NaoFic
+comprado_15 = 0  # FicCient
+comprado_16 = 0  # Fantasia
+
+# Simula ativação com pesos fixos + soma
+recomendado_5  = comprado_1
+recomendado_6  = comprado_1
+recomendado_7  = comprado_1
+recomendado_8  = comprado_2
+recomendado_9  = comprado_2
+recomendado_10 = comprado_2
+recomendado_11 = comprado_3
+recomendado_12 = comprado_3
+recomendado_13 = comprado_3
+recomendado_14 = comprado_4
+recomendado_15 = comprado_4
+recomendado_16 = comprado_4
+
+print("Produtos recomendados para você:")
+
+if recomendado_5 == 1 {
+  print("Laptop")
+}
+if recomendado_6 == 1 {
+  print("Tablet")
+}
+if recomendado_7 == 1 {
+  print("Fones de ouvido")
+}
+if recomendado_8 == 1 {
+  print("Camisa")
+}
+if recomendado_9 == 1 {
+  print("Jaqueta")
+}
+if recomendado_10 == 1 {
+  print("Sapatos")
+}
+if recomendado_11 == 1 {
+  print("Geladeira")
+}
+if recomendado_12 == 1 {
+  print("Máquina de lavar")
+}
+if recomendado_13 == 1 {
+  print("Ar condicionado")
+}
+if recomendado_14 == 1 {
+  print("Não-ficção")
+}
+if recomendado_15 == 1 {
+  print("Ficção científica")
+}
+if recomendado_16 == 1 {
+  print("Fantasia")
+}
