@@ -39,7 +39,7 @@ class InterpreterTest {
             """;
 
         Interpreter interpreter = interpretar(code);
-        Map<String, Integer> memory = interpreter.getMemory();
+        Map<String, Object> memory = interpreter.getMemory();
 
         assertEquals(10, memory.get("x"));
         assertEquals(10, memory.get("y"));
@@ -70,7 +70,7 @@ class InterpreterTest {
             """;
 
         Interpreter interpreter = interpretar(code);
-        Map<String, Integer> memory = interpreter.getMemory();
+        Map<String, Object> memory = interpreter.getMemory();
 
         assertEquals(1, memory.get("x"));
         assertEquals(2, memory.get("y"));

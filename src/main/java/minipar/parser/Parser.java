@@ -1,93 +1,47 @@
 package minipar.parser;
 
 import minipar.lexer.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Parser {
     private final List<Token> tokens;
-    private int position = 0;
+    private int pos = 0;
+    private final ExpressionParser expressionParser;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
+        this.expressionParser = new ExpressionParser(this);
     }
 
     public ASTNode parseProgram() {
         expect(TokenType.KEYWORD, "programa_minipar");
         ASTNode root = new ASTNode("Programa", "programa_minipar");
         while (!isAtEnd()) {
-            Token token = current();
-            if (token.getType() == TokenType.KEYWORD &&
-                    (token.getValue().equals("SEQ") || token.getValue().equals("PAR"))) {
-                root.addChild(parseBlock());
-            } else {
-                throw error("Esperado bloco SEQ ou PAR após programa-minipar");
-            }
+            root.addChild(parseBlock());
         }
         return root;
     }
 
-    private ASTNode parseBlock() {
+    public ASTNode parseBlock() {
         Token token = current();
+        String blockType = token.getValue();
+        expect(TokenType.KEYWORD, blockType);
+        ASTNode node = new ASTNode(blockType, "");
 
-        if (token.getType() == TokenType.KEYWORD && token.getValue().equals("SEQ")) {
-            consume(); // consome SEQ
-            ASTNode seqNode = new ASTNode("SEQ", "");
-            while (!isAtEnd()) {
-                if (current().getType() == TokenType.KEYWORD &&
-                        (current().getValue().equals("SEQ") || current().getValue().equals("PAR"))) {
-                    break; // para o bloco atual
-                }
-                seqNode.addChild(parseStatement());
-            }
-            return seqNode;
-
-        } else if (token.getType() == TokenType.KEYWORD && token.getValue().equals("PAR")) {
-            consume(); // consome PAR
-            ASTNode parNode = new ASTNode("PAR", "");
-            while (!isAtEnd()) {
-                if (current().getType() == TokenType.KEYWORD &&
-                        (current().getValue().equals("SEQ") || current().getValue().equals("PAR"))) {
-                    parNode.addChild(parseBlock()); // permite blocos aninhados dentro do PAR
-                } else {
-                    parNode.addChild(parseStatement());
-                }
-            }
-            return parNode;
-
-        } else {
-            throw error("Esperado SEQ ou PAR");
+        while (!isAtEnd()) {
+            if (peekIs("SEQ") || peekIs("PAR")) break;
+            node.addChild(parseStatement());
         }
+        return node;
     }
 
-
-    private ASTNode parseStatement() {
+    public ASTNode parseStatement() {
         Token token = current();
-
         if (token.getType() == TokenType.IDENTIFIER) {
-            Token next = peek();
-
-            if (next != null && next.getValue().equals("=")) {
-                return parseAssignment();
-            } else if (next != null && next.getValue().equals(".")) {
-                return parseChannelOperation();
-            } else if (next != null && next.getValue().equals("(")) {
-                return parseFunctionCall();
-            }  else {
-                throw error("Atribuiçao invalida ou comando esperado ou desconhecido após '" + token.getValue() + "'");
-            }
+            return new StatementParser(this).parseIdentifierStatement();
         }
         if (token.getType() == TokenType.KEYWORD) {
-            return switch (token.getValue()) {
-                case "c_channel" -> parseChannelDeclaration();
-                case "print"     -> parsePrint();
-                case "if"        -> parseIf();
-                case "while"     -> parseWhile();
-                case "def"       -> parseFunction();
-                case "return"    -> parseReturn();
-                default -> throw error("Palavra-chave desconhecida: " + token.getValue());
-            };
+            return new StatementParser(this).parseKeywordStatement(token.getValue());
         }
         if (token.getType() == TokenType.COMMENT) {
             return new ASTNode("Comentario", consume().getValue());
@@ -95,261 +49,63 @@ public class Parser {
         throw error("Instrucao invalida: " + token.getValue());
     }
 
-    private ASTNode parseAssignment() {
-        Token var = expect(TokenType.IDENTIFIER);
-        expect(TokenType.OPERATOR, "=");
-        ASTNode expr = parseExpression();
-        ASTNode node = new ASTNode("Atribuicao", "");
-        node.addChild(new ASTNode("Variavel", var.getValue()));
-        node.addChild(expr);
-        return node;
+    // === DELEGAÇÃO PARA EXPRESSÕES ===
+    public ASTNode parseExpression() {
+        return expressionParser.parseExpression();
     }
 
-    private ASTNode parseChannelDeclaration() {
-        expect(TokenType.KEYWORD, "c_channel");
-        Token canal = expect(TokenType.IDENTIFIER);
-        Token comp1 = expect(TokenType.IDENTIFIER);
-        Token comp2 = expect(TokenType.IDENTIFIER);
-        ASTNode node = new ASTNode("c_channel", canal.getValue());
-        node.addChild(new ASTNode("Comp1", comp1.getValue()));
-        node.addChild(new ASTNode("Comp2", comp2.getValue()));
-        return node;
-    }
-    private ASTNode parseChannelOperation() {
-        Token canal = expect(TokenType.IDENTIFIER); // ex: "canal1"
-        expect(TokenType.OPERATOR, ".");           // ex: "."
-        Token operacao = expect(TokenType.IDENTIFIER); // ex: "send" ou "receive"
-        expect(TokenType.DELIMITER, "(");          // "("
-        Token argumento = expect(TokenType.IDENTIFIER, TokenType.NUMBER);
-        expect(TokenType.DELIMITER, ")");          // ")"
+    // ===================== Utilitários =========================
+    public Token current() { return tokens.get(pos); }
+    public Token previous() { return tokens.get(pos - 1); }
+    public Token peek() { return pos + 1 < tokens.size() ? tokens.get(pos + 1) : null; }
+    public Token consume() { return tokens.get(pos++); }
 
-        ASTNode node = new ASTNode(operacao.getValue(), canal.getValue());
-
-        if (operacao.getValue().equals("send")) {
-            node.addChild(new ASTNode("Valor", argumento.getValue()));
-        } else if (operacao.getValue().equals("receive")) {
-            node.addChild(new ASTNode("Variavel", argumento.getValue()));
-        } else {
-            throw error("Operação desconhecida: " + operacao.getValue());
-        }
-
-        return node;
-    }
-    private ASTNode parsePrint() {
-        expect(TokenType.KEYWORD, "print");
-        expect(TokenType.DELIMITER, "(");
-        Token argumento = expect(TokenType.IDENTIFIER, TokenType.NUMBER, TokenType.STRING);
-        expect(TokenType.DELIMITER, ")");
-
-        ASTNode node = new ASTNode("print", "");
-        node.addChild(new ASTNode("Valor", argumento.getValue()));
-        return node;
-    }
-    private ASTNode parseExpression() {
-        ASTNode left = parseTerm();
-        while (!isAtEnd() && isComparisonOperator(current().getValue())) {
-            String op = consume().getValue(); // operador relacional
-            ASTNode right = parseTerm();
-            ASTNode node = new ASTNode("BinOp", op);
-            node.addChild(left);
-            node.addChild(right);
-            left = node;
-        }
-        return left;
-    }
-
-    private ASTNode parseTerm() {
-        ASTNode node = parseFactor();
-
-        while (!isAtEnd() && (match("+") || match("-"))) {
-            String op = previous().getValue();
-            ASTNode operador = new ASTNode("BinOp", op);
-            operador.addChild(node); // filho esquerdo
-            operador.addChild(parseFactor()); // filho direito
-            node = operador;
-        }
-        return node;
-    }
-
-    private ASTNode parseFactor() {
-        ASTNode node = parsePrimary();
-
-        while (!isAtEnd() && (match("*") || match("/"))) {
-            String op = previous().getValue();
-            ASTNode operador = new ASTNode("BinOp", op);
-            operador.addChild(node); // filho esquerdo
-            operador.addChild(parsePrimary()); // filho direito
-            node = operador;
-        }
-
-        return node;
-    }
-
-    private ASTNode parsePrimary() {
-        Token token = current();
-
-        if (match("(")) {
-            ASTNode expr = parseExpression();
-            expect(TokenType.DELIMITER, ")");
-            return expr;
-        }
-
-        if (token.getType() == TokenType.IDENTIFIER) {
-            // Se for chamada de função
-            if (peekNextIs("(")) {
-                return parseFunctionCall();
-            } else {
-                consume();
-                return new ASTNode("Valor", token.getValue());
-            }
-        }
-
-        if (token.getType() == TokenType.NUMBER  || token.getType() == TokenType.STRING) {
-            consume();
-            return new ASTNode("Valor", token.getValue());
-        }
-
-        throw error("Expressão inválida");
-    }
-    private ASTNode parseIf() {
-        return parseConditional("if");
-    }
-
-    private ASTNode parseWhile() {
-        return parseConditional("while");
-    }
-
-    private ASTNode parseFunction() {
-        expect(TokenType.KEYWORD, "def");
-        String name = expect(TokenType.IDENTIFIER).getValue();
-
-        expect(TokenType.DELIMITER, "(");
-        List<String> params = new ArrayList<>();
-        if (!peekIs(")")) {
-            do {
-                params.add(expect(TokenType.IDENTIFIER).getValue());
-            } while (match(","));
-        }
-        expect(TokenType.DELIMITER, ")");
-
-        expect(TokenType.DELIMITER, "{");
-        ASTNode body = new ASTNode("Bloco", "");
-        while (!peekIs("}")) {
-            body.addChild(parseStatement());
-        }
-        expect(TokenType.DELIMITER, "}");
-
-        ASTNode defNode = new ASTNode("def", name);
-        for (String param : params) {
-            defNode.addChild(new ASTNode("param", param));
-        }
-        defNode.addChild(body);
-
-        return defNode;
-    }
-    private ASTNode parseReturn() {
-        expect(TokenType.KEYWORD, "return");
-        ASTNode expr = parseExpression();
-        ASTNode node = new ASTNode("return", "");
-        node.addChild(expr);
-        return node;
-    }
-
-    private ASTNode parseFunctionCall() {
-        String name = expect(TokenType.IDENTIFIER).getValue();
-        expect(TokenType.DELIMITER, "(");
-        List<ASTNode> args = new ArrayList<>();
-        if (!peekIs(")")) {
-            do {
-                args.add(parseExpression());
-            } while (match(","));
-        }
-        expect(TokenType.DELIMITER, ")");
-
-        ASTNode call = new ASTNode("ChamadaFuncao", name);
-        args.forEach(call::addChild);
-        return call;
-    }
-
-    // === Utilitários ===
-    private ASTNode parseConditional(String type) {
-        expect(TokenType.KEYWORD, type);
-        ASTNode condition = parseExpression(); // funciona com operadores relacionais
-        expect(TokenType.DELIMITER, "{");
-
-        ASTNode block = new ASTNode("Bloco", "");
-        while (!peekIs("}")) {
-            block.addChild(parseStatement());
-        }
-        expect(TokenType.DELIMITER, "}");
-
-        ASTNode node = new ASTNode(type, "");
-        node.addChild(condition);
-        node.addChild(block);
-        return node;
-    }
-
-    private boolean match(String value) {
+    public boolean match(String value) {
         if (!isAtEnd() && current().getValue().equals(value)) {
-            consume();
-            return true;
+            consume(); return true;
         }
         return false;
     }
 
-    private Token previous() {
-        return tokens.get(position - 1);
+    public boolean peekIs(String value) { return current().getValue().equals(value); }
+
+    public boolean peekNextIs(String value) {
+        return pos + 1 < tokens.size() && tokens.get(pos + 1).getValue().equals(value);
     }
 
-    private Token current() {
-        return tokens.get(position);
-    }
+    public boolean isAtEnd() { return current().getType() == TokenType.EOF; }
 
-    private Token peek() {
-        return position + 1 < tokens.size() ? tokens.get(position + 1) : null;
-    }
-
-    private boolean peekIs(String value) {
-        return current().getValue().equals(value);
-    }
-
-    private Token consume() {
-        return tokens.get(position++);
-    }
-
-    private Token expect(TokenType... types) {
+    public Token expect(TokenType... types) {
         Token token = current();
-        for (TokenType type : types) {
-            if (token.getType() == type) {
-                return consume();
-            }
-        }
+        for (TokenType type : types)
+            if (token.getType() == type) return consume();
         throw error("Esperado tipo: " + List.of(types) + ", encontrado: " + token.getType());
     }
 
-    private Token expect(TokenType type, String value) {
+    public Token expect(TokenType type, String value) {
         Token token = current();
-        if (token.getType() == type && token.getValue().equals(value)) {
-            return consume();
-        }
+        if (token.getType() == type && token.getValue().equals(value)) return consume();
         throw error("Esperado: " + value + ", encontrado: " + token.getValue());
     }
 
-    private boolean isAtEnd() {
-        return current().getType() == TokenType.EOF;
+    public ASTNode createNode(String type, String value, ASTNode... children) {
+        ASTNode node = new ASTNode(type, value);
+        for (ASTNode child : children) node.addChild(child);
+        return node;
     }
 
-    private RuntimeException error(String message) {
+    public RuntimeException error(String message) {
         return new RuntimeException("Erro sintatico na linha " + current().getLine() + ": " + message);
     }
-    private boolean isComparisonOperator(String op) {
+
+    public boolean isComparisonOperator(String op) {
         return switch (op) {
             case "==", "!=", "<", ">", "<=", ">=" -> true;
             default -> false;
         };
     }
-    private boolean peekNextIs(String value) {
-        if (position + 1 >= tokens.size()) return false;
-        return tokens.get(position + 1).getValue().equals(value);
-    }
+
+    public int getPosition() { return pos; }
+    public void setPosition(int pos) { this.pos = pos; }
+    public List<Token> getTokens() { return tokens; }
 }

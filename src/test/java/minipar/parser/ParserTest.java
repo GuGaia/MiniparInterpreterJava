@@ -93,7 +93,7 @@ class ParserTest {
 
         Parser parser = new Parser(tokenize(code));
         Exception exception = assertThrows(RuntimeException.class, parser::parseProgram);
-
-        assertTrue(exception.getMessage().contains("esperado"));
+        System.out.println(exception);
+        assertTrue(exception.getMessage().contains("Atribuição inválida ou comando desconhecido após"));
     }
 }

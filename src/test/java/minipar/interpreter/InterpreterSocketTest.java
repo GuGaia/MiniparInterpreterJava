@@ -41,7 +41,7 @@ class InterpreterSocketTest {
         ASTNode ast = gerarAST(codigo);
         ast.print("");
         Interpreter interpreter = interpretar(ast);
-        Map<String, Integer> mem = interpreter.getMemory();
+        Map<String, Object> mem = interpreter.getMemory();
         assertTrue(mem.containsKey("resultado"),  "Variável 'resultado' não encontrada na memória");
         assertEquals(99, mem.get("resultado"));
     }

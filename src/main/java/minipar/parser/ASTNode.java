@@ -41,4 +41,9 @@ public class ASTNode {
             child.print(prefix + "  ");
         }
     }
+    public void setChildren(List<ASTNode> children) {
+        this.children.clear();
+        this.children.addAll(children);
+    }
+
 }
