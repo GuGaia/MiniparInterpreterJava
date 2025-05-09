@@ -57,10 +57,17 @@ public class Interpreter {
 
     private void executeParallel(ASTNode block) {
         List<Thread> threads = new ArrayList<>();
+        int contador = 0;
         for (ASTNode childBlock : block.getChildren()) {
-            Thread thread = new Thread(() -> executeBlock(childBlock));
-            thread.start();
+            int id = contador++;
+            Thread thread = new Thread(() -> {
+                String nomeThread = "Thread-PAR-" + id;
+                Thread.currentThread().setName(nomeThread);
+                System.out.println("[THREAD] Iniciando bloco em thread: " + nomeThread);
+                executeBlock(childBlock);
+            });
             threads.add(thread);
+            thread.start();
         }
         for (Thread t : threads) {
             try {
@@ -70,6 +77,7 @@ public class Interpreter {
             }
         }
     }
+
 
     public void executeStatement(ASTNode stmt) {
         switch (stmt.getType()) {
