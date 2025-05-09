@@ -1,6 +1,7 @@
 package minipar.gui;
 
 import minipar.lexer.*;
+import minipar.lexer.Token;
 import minipar.parser.*;
 import minipar.semantic.*;
 import minipar.interpreter.*;
@@ -11,28 +12,45 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.List;
 
+import org.fife.ui.rsyntaxtextarea.*;
+import org.fife.ui.rtextarea.*;
+import com.formdev.flatlaf.FlatDarkLaf;
+
 public class MiniParGUI extends JFrame {
 
-    private JTextArea codeArea;
+    private RSyntaxTextArea codeArea;
     private JTextArea astArea;
     private JTextArea outputArea;
     private File currentFile = null;
 
     public MiniParGUI() {
+        // Aplicar o tema FlatLaf Dark
+        try {
+            UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+
         setTitle("MiniPar - Interpretador Visual");
         setSize(1000, 700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Criação das áreas
-        codeArea = criarTextArea(true);
+        // Editor de código com destaque de sintaxe
+        codeArea = new RSyntaxTextArea(20, 60);
+        codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+        codeArea.setCodeFoldingEnabled(true);
+        codeArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        RTextScrollPane codeScrollPane = new RTextScrollPane(codeArea);
+
+        // Áreas de AST e saída
         astArea = criarTextArea(false);
         outputArea = criarTextArea(false);
 
         // Painéis organizados em abas
         JTabbedPane abas = new JTabbedPane();
-        abas.addTab("Código Fonte", new JScrollPane(codeArea));
+        abas.addTab("Código Fonte", codeScrollPane);
         abas.addTab("AST (Árvore Sintática)", new JScrollPane(astArea));
         abas.addTab("Saída do Programa", new JScrollPane(outputArea));
         add(abas, BorderLayout.CENTER);
