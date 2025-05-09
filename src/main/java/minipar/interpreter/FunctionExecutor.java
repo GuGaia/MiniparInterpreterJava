@@ -34,7 +34,7 @@ public class FunctionExecutor {
         functions.put(name, stmt);
     }
 
-    public int call(ASTNode node) {
+    public double call(ASTNode node) {
         String nome = node.getValue();
         ASTNode func = functions.get(nome);
         if (func == null) throw new RuntimeException("Função não declarada: " + nome);
@@ -56,7 +56,7 @@ public class FunctionExecutor {
 
         // Novo escopo local
         for (int i = 0; i < parametros.size(); i++) {
-            int val = evaluator.evaluate(argumentos.get(i));
+            double val = evaluator.evaluate(argumentos.get(i));
             memory.put(parametros.get(i), val);
             if (!symbolTable.isDeclared(parametros.get(i))) {
                 symbolTable.declare(parametros.get(i), "int");

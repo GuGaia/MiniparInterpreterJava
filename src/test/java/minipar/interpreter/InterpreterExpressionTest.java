@@ -37,7 +37,7 @@ class InterpreterExpressionTest {
             x = 5
             """;
         Interpreter interpreter = interpretar(code);
-        assertEquals(5, interpreter.getMemory().get("x"));
+        assertEquals(5.0, interpreter.getMemory().get("x"));
     }
 
     @Test
@@ -48,7 +48,7 @@ class InterpreterExpressionTest {
             x = 2 + 3 * 4
             """;
         Interpreter interpreter = interpretar(code);
-        assertEquals(14, interpreter.getMemory().get("x"));
+        assertEquals(14.0, interpreter.getMemory().get("x"));
     }
 
     @Test
@@ -59,7 +59,7 @@ class InterpreterExpressionTest {
             x = (2 + 3) * 4
             """;
         Interpreter interpreter = interpretar(code);
-        assertEquals(20, interpreter.getMemory().get("x"));
+        assertEquals(20.0, interpreter.getMemory().get("x"));
     }
 
     @Test
@@ -90,7 +90,7 @@ class InterpreterExpressionTest {
             resultado = 12 / 2 + 3
             """;
         Interpreter interpreter = interpretar(code);
-        assertEquals(9, interpreter.getMemory().get("resultado"));
+        assertEquals(9.0, interpreter.getMemory().get("resultado"));
     }
 
     @Test
@@ -103,6 +103,6 @@ class InterpreterExpressionTest {
             c = a * b + 2
             """;
         Interpreter interpreter = interpretar(code);
-        assertEquals(17, interpreter.getMemory().get("c"));
+        assertEquals(17.0, interpreter.getMemory().get("c"));
     }
 }

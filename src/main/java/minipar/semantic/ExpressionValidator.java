@@ -19,6 +19,7 @@ public class ExpressionValidator {
             }
             case "ChamadaFuncao", "Lista" -> expr.getChildren().forEach(this::validateExpression);
             case "Indexacao" -> validateIndexAccess(expr);
+            case "input" -> {}
             default -> throw new RuntimeException("Expressão inválida: " + expr.getType());
         }
     }

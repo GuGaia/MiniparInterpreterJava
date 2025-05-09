@@ -30,19 +30,21 @@ class InterpreterSocketTest {
     @Test
     void testSendReceiveSimplesComPAR() throws InterruptedException {
         String codigo = """
-            programa_minipar
-            SEQ
-            c_channel canal1 pc1 pc2
-            PAR
-            canal1.send(99)
-            canal1.receive(resultado)
-            """;
+        programa_minipar
+        SEQ
+        c_channel canal1 pc1 pc2
+        PAR
+        SEQ
+        canal1.send(99)
+        SEQ
+        canal1.receive(resultado)
+        """;
 
         ASTNode ast = gerarAST(codigo);
         ast.print("");
         Interpreter interpreter = interpretar(ast);
         Map<String, Object> mem = interpreter.getMemory();
         assertTrue(mem.containsKey("resultado"),  "Variável 'resultado' não encontrada na memória");
-        assertEquals(99, mem.get("resultado"));
+        assertEquals(99.0, mem.get("resultado"));
     }
 }

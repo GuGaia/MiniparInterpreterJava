@@ -43,7 +43,7 @@ class InterpreterFunctionTest {
             """;
 
         Interpreter interpreter = interpretar(code);
-        assertEquals(5, interpreter.getMemory().get("x"));
+        assertEquals(5.0, interpreter.getMemory().get("x"));
     }
 
     @Test
@@ -60,8 +60,8 @@ class InterpreterFunctionTest {
             """;
 
         Interpreter interpreter = interpretar(code);
-        assertEquals(6, interpreter.getMemory().get("a"));
-        assertEquals(20, interpreter.getMemory().get("b"));
+        assertEquals(6.0, interpreter.getMemory().get("a"));
+        assertEquals(20.0, interpreter.getMemory().get("b"));
     }
 
     @Test
@@ -77,7 +77,7 @@ class InterpreterFunctionTest {
             """;
 
         Interpreter interpreter = interpretar(code);
-        assertEquals(0, interpreter.getMemory().get("z")); // padrão sem return é 0
+        assertEquals(0.0, interpreter.getMemory().get("z")); // padrão sem return é 0
     }
 
     @Test
@@ -118,7 +118,7 @@ class InterpreterFunctionTest {
             """;
 
         Interpreter interpreter = interpretar(code);
-        assertEquals(100, interpreter.getMemory().get("x")); // escopo externo preservado
-        assertEquals(6, interpreter.getMemory().get("y"));
+        assertEquals(100.0, interpreter.getMemory().get("x")); // escopo externo preservado
+        assertEquals(6.0, interpreter.getMemory().get("y"));
     }
 }
