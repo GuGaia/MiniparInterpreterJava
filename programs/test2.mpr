@@ -1,0 +1,27 @@
+programa_minipar
+
+SEQ
+
+SEQ
+n = 5
+f = 1
+i = 1
+while i <= n {
+    f = f * i
+    i = i + 1
+}
+print("Fatorial de 5:")
+print(f)
+
+SEQ
+x = 0
+y = 1
+j = 0
+print("Série de Fibonacci até o 7º termo:")
+while j < 7 {
+    print(x)
+    z = x + y
+    x = y
+    y = z
+    j = j + 1
+}

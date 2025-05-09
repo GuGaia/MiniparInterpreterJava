@@ -1,0 +1,59 @@
+programa_minipar
+SEQ
+# Inicialização das variáveis
+input_val = 1
+output_desire = 0
+input_weight = 50
+learning_rate = 1
+error = 1000
+iteration = 0
+bias = 1
+bias_weight = 50
+
+# Função de ativação
+def activation(valor) {
+    if valor >= 0 {
+        return 100
+    }
+    else {
+        return 0
+    }
+}
+
+# Impressão inicial
+print("Entrada:")
+print(input_val)
+print("Desejado:")
+print(output_desire)
+
+# Loop de aprendizado
+while error != 0 {
+    iteration = iteration + 1
+    print("#### Iteração:")
+    print(iteration)
+
+    print("Peso:")
+    print(input_weight)
+
+    sum_val = input_val * input_weight
+    sum_val = sum_val + (bias * bias_weight)
+
+    output = activation(sum_val)
+
+    print("Saída:")
+    print(output)
+
+    error = output_desire - (output/100)
+    print("Erro:") print(error)
+
+    if error != 0 {
+        input_weight = input_weight + (learning_rate * input_val * error)
+        print("Peso do bias:")
+        print(bias_weight)
+        bias_weight = bias_weight + (learning_rate * bias * error)
+    }
+}
+
+print("Parabéns!!! A Rede de um Neurônio Aprendeu")
+print("Valor desejado:")
+print(output_desire)

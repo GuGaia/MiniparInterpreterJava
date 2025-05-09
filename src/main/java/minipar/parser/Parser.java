@@ -24,16 +24,30 @@ public class Parser {
 
     public ASTNode parseBlock() {
         Token token = current();
-        String blockType = token.getValue();
+        String blockType = token.getValue(); // "SEQ" ou "PAR"
         expect(TokenType.KEYWORD, blockType);
-        ASTNode node = new ASTNode(blockType, "");
 
-        while (!isAtEnd()) {
-            if (peekIs("SEQ") || peekIs("PAR")) break;
-            node.addChild(parseStatement());
+        ASTNode blocoPrincipal = new ASTNode(blockType, "");
+
+        // Se for SEQ: adiciona instruções diretamente
+        if (blockType.equals("SEQ")) {
+            while (!isAtEnd() && !(peekIs("SEQ") || peekIs("PAR") || peekIs("EOF"))) {
+                blocoPrincipal.addChild(parseStatement());
+            }
         }
-        return node;
+
+        // Se for PAR: espera blocos SEQ internos
+        else if (blockType.equals("PAR")) {
+            while (!isAtEnd() && (peekIs("SEQ") || peekIs("PAR") || peekIs("EOF"))) {
+                ASTNode seqBloco = parseBlock(); // Espera SEQ logo após PAR
+                blocoPrincipal.addChild(seqBloco);
+            }
+        }
+
+        return blocoPrincipal;
     }
+
+
 
     public ASTNode parseStatement() {
         Token token = current();
