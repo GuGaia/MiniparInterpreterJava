@@ -72,6 +72,7 @@ public class ExpressionEvaluator {
             case "+" -> left + right;
             case "-" -> left - right;
             case "*" -> left * right;
+            case "^" -> Math.pow(left, right);
             case "/" -> right == 0 ? 0 : left / right;
             case "==" -> left == right ? 1 : 0;
             case "!=" -> left != right ? 1 : 0;

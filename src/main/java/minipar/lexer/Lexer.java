@@ -21,7 +21,7 @@ public class Lexer {
         patterns.put(Pattern.compile("^-?\\d+(\\.\\d+)?"), TokenType.NUMBER);
         patterns.put(Pattern.compile("^\"[^\"]*\""), TokenType.STRING);
         patterns.put(Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*"), TokenType.IDENTIFIER);
-        patterns.put(Pattern.compile("^(==|!=|<=|>=|[+\\-*/=<>])|^\\."), TokenType.OPERATOR); // ponto agora é operador
+        patterns.put(Pattern.compile("^(==|!=|<=|>=|[+\\-*/=<>^])|^\\."), TokenType.OPERATOR); // ponto agora é operador
         patterns.put(Pattern.compile("^[\\[\\](){},]"), TokenType.DELIMITER);
         patterns.put(Pattern.compile("^\\s+"), TokenType.WHITESPACE);
     }

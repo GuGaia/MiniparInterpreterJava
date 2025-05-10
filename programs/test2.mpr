@@ -6,9 +6,8 @@ n_fat = input()
 print("Digite um número para calcular a série de Fibonacci:")
 n_fib = input()
 
-SEQ
+PAR
 
-# Thread 1 – Fatorial
 SEQ
 print("Fatorial de:")
 print(n_fat)
@@ -21,7 +20,6 @@ while i <= n_fat {
 print("Resultado do fatorial:")
 print(fat)
 
-# Thread 2 – Série de Fibonacci
 SEQ
 print("Série de Fibonacci até o termo:")
 print(n_fib)

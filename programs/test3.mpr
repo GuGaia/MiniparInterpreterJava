@@ -22,30 +22,23 @@ def activation(s) {
         return 0
     }
 }
-
 print("Entrada:")
 print(input_val)
 print("Desejado:")
 print(output_desire)
-
 while error != 0 {
     iteration = iteration + 1
     print("#### Iteração:")
     print(iteration)
-
     print("Peso:")
     print(input_weight)
-
     sum_val = (input_val * input_weight) + (bias * bias_weight)
     output = activation(sum_val)
-
     print("Saída:")
     print(output)
-
     error = output_desire - output
     print("Erro:")
     print(error)
-
     if error != 0 {
         input_weight = input_weight + (learning_rate * input_val * error)
         print("Peso do bias:")

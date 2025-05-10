@@ -30,8 +30,18 @@ public class ExpressionParser {
     }
 
     public ASTNode parseFactor() {
-        ASTNode node = parsePrimary();
+        ASTNode node = parseExponent();
         while (!parser.isAtEnd() && (parser.match("*") || parser.match("/"))) {
+            String op = parser.previous().getValue();
+            node = parser.createNode("BinOp", op, node, parseExponent());
+        }
+        return node;
+    }
+
+    // ✅ NOVO: tratamento do operador de exponenciação "^"
+    private ASTNode parseExponent() {
+        ASTNode node = parsePrimary();
+        while (!parser.isAtEnd() && parser.match("^")) {
             String op = parser.previous().getValue();
             node = parser.createNode("BinOp", op, node, parsePrimary());
         }
@@ -46,6 +56,7 @@ public class ExpressionParser {
             parser.expect(TokenType.DELIMITER, ")");
             return expr;
         }
+
         if (token.getType() == TokenType.KEYWORD && token.getValue().equals("input")) {
             parser.consume(); // consome 'input'
             parser.expect(TokenType.DELIMITER, "(");
@@ -53,7 +64,7 @@ public class ExpressionParser {
             return new ASTNode("input", "");
         }
 
-         if (token.getType() == TokenType.IDENTIFIER) {
+        if (token.getType() == TokenType.IDENTIFIER) {
             String name = parser.consume().getValue();
             if (parser.match("[")) {
                 ASTNode index = parseExpression();
@@ -61,14 +72,17 @@ public class ExpressionParser {
                 return parser.createNode("Indexacao", name, index);
             }
             if (parser.peekIs("(")) {
-                 return new StatementParser(parser).parseFunctionCall(name);
+                return new StatementParser(parser).parseFunctionCall(name);
             }
             return new ASTNode("Valor", name);
         }
 
         if (parser.match("[")) {
             List<ASTNode> elements = new ArrayList<>();
-            if (!parser.peekIs("]")) do elements.add(parseExpression()); while (parser.match(","));
+            if (!parser.peekIs("]")) {
+                do elements.add(parseExpression());
+                while (parser.match(","));
+            }
             parser.expect(TokenType.DELIMITER, "]");
             ASTNode node = new ASTNode("Lista", "");
             node.setChildren(elements);
