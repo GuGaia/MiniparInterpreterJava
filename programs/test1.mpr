@@ -5,44 +5,53 @@ c_channel calculadora computador_1 computador_2
 
 PAR
 SEQ
-# Cliente - computador_1
-# Escolhe a operação (1 = soma)
-print("Operações disponíveis: 1=soma, 2=subtração, 3=multiplicação, 4=divisão")
-op = 1
-v1 = 20
-v2 = 5
+# Cliente
+print("Calculadora MiniPar:")
+print("Digite o número da operação desejada:")
+print("1 = Soma, 2 = Subtração, 3 = Multiplicação, 4 = Divisão")
 
-# Envia dados para o servidor
-calculadora.send(op)
-calculadora.send(v1)
-calculadora.send(v2)
+operacao = input()
+valor1 = input()
+valor2 = input()
 
-# Aguarda resultado do servidor
-calculadora.receive(resultado_v2)
+calculadora.send(operacao)
+calculadora.send(valor1)
+calculadora.send(valor2)
 
-# Imprime o resultado
+calculadora.receive(resultado)
 print("Resultado recebido do servidor:")
-print(resultado_v2)
+print(resultado)
 
 SEQ
-calculadora.receive(operacao)
-calculadora.receive(n1)
-calculadora.receive(n2)
+# Servidor
+calculadora.receive(op)
+calculadora.receive(v1)
+calculadora.receive(v2)
+res = 0
 
-# Processa a operação (simples: apenas soma se op = 1)
+# Conversão explícita para garantir avaliação como número
+v1 = v1 + 0
+v2 = v2 + 0
+op = op + 0
 
-if operacao == 1 {
-    resultado = n1 + n2
+# Processamento da operação
+if op == 1 {
+    res = v1 + v2
 }
-if operacao == 2 {
-    resultado = n1 - n2
-}
-if operacao == 3 {
-    resultado = n1 * n2
-}
-if operacao == 4 {
-    resultado = n1 / n2
+else {
+    if op == 2 {
+        res = v1 - v2
+    }
+    else {
+        if op == 3 {
+            res = v1 * v2
+        }
+        else {
+            if op == 4 {
+                res = v1 / v2
+            }
+        }
+    }
 }
 
-
-calculadora.send(resultado)
+calculadora.send(res)

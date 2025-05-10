@@ -29,7 +29,7 @@ public class ExpressionValidator {
     }
 
     private void validateLiteralOrVariable(String val) {
-        if (val.matches("\\d+")) return; // número literal
+        if (val.matches("-?\\d+(\\.\\d+)?")) return; // número literal
         if (val.startsWith("\"") && val.endsWith("\"")) return; // string
         if (!symbolTable.isDeclared(val)) {
             throw new RuntimeException("Variável não declarada: " + val);

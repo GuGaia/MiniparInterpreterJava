@@ -1,72 +1,69 @@
 programa_minipar
 SEQ
-# Codificação do histórico de compras do usuário
-comprado_1 = 1   # Smartphone
-comprado_2 = 1   # Jeans
-comprado_3 = 1   # Micro-ondas
-comprado_4 = 1   # Ficção
-comprado_5 = 0   # Laptop
-comprado_6 = 0   # Tablet
-comprado_7 = 0   # Fones
-comprado_8 = 0   # Camisa
-comprado_9 = 0   # Jaqueta
-comprado_10 = 0  # Sapatos
-comprado_11 = 0  # Geladeira
-comprado_12 = 0  # MaqLavar
-comprado_13 = 0  # ArCond
-comprado_14 = 0  # NaoFic
-comprado_15 = 0  # FicCient
-comprado_16 = 0  # Fantasia
+# Histórico de compras do usuário
+smartphone = 1
+jeans = 1
+microondas = 1
+ficcao = 1
 
-# Simula ativação com pesos fixos + soma
-recomendado_5  = comprado_1
-recomendado_6  = comprado_1
-recomendado_7  = comprado_1
-recomendado_8  = comprado_2
-recomendado_9  = comprado_2
-recomendado_10 = comprado_2
-recomendado_11 = comprado_3
-recomendado_12 = comprado_3
-recomendado_13 = comprado_3
-recomendado_14 = comprado_4
-recomendado_15 = comprado_4
-recomendado_16 = comprado_4
+# Demais produtos (não comprados)
+laptop = 0
+tablet = 0
+fones = 0
+camisa = 0
+jaqueta = 0
+sapatos = 0
+geladeira = 0
+lavadora = 0
+ar = 0
+nao_ficcao = 0
+ficcao_cientifica = 0
+fantasia = 0
+
+# Pesos (simulados) aprendidos via rede neural
+# Produtos com mais associação ao histórico de compras
+peso_smartphone = 1
+peso_jeans = 1
+peso_microondas = 1
+peso_ficcao = 1
+
+# Função simulada de ativação: se peso >= 1, recomenda
+def ativar(p) {
+  if p >= 1 {
+    return 1
+  } else {
+    return 0
+  }
+}
 
 print("Produtos recomendados para você:")
 
-if recomendado_5 == 1 {
+# Recomendações manuais com base em associação simples
+
+recom1 = ativar(smartphone)
+if recom1 == 1 {
   print("Laptop")
-}
-if recomendado_6 == 1 {
   print("Tablet")
-}
-if recomendado_7 == 1 {
   print("Fones de ouvido")
 }
-if recomendado_8 == 1 {
+
+recom2 = ativar(jeans)
+if recom2 == 1 {
   print("Camisa")
-}
-if recomendado_9 == 1 {
   print("Jaqueta")
-}
-if recomendado_10 == 1 {
   print("Sapatos")
 }
-if recomendado_11 == 1 {
+
+recom3 = ativar(microondas)
+if recom3 == 1 {
   print("Geladeira")
-}
-if recomendado_12 == 1 {
   print("Máquina de lavar")
-}
-if recomendado_13 == 1 {
   print("Ar condicionado")
 }
-if recomendado_14 == 1 {
+
+recom4 = ativar(ficcao)
+if recom4 == 1 {
   print("Não-ficção")
-}
-if recomendado_15 == 1 {
   print("Ficção científica")
-}
-if recomendado_16 == 1 {
   print("Fantasia")
 }

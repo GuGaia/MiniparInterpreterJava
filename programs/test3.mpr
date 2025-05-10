@@ -1,32 +1,33 @@
 programa_minipar
+
 SEQ
-# Inicialização das variáveis
-input_val = 1
-output_desire = 0
-input_weight = 50
-learning_rate = 1
-error = 1000
-iteration = 0
+print("Digite o valor de entrada:")
+input_val = input()
+
+print("Digite o valor desejado (0 ou 1):")
+output_desire = input()
+
+input_weight = 0.5
+bias_weight = 0.5
 bias = 1
-bias_weight = 50
+learning_rate = 0.01
+error = 1
+iteration = 0
 
 # Função de ativação
-def activation(valor) {
-    if valor >= 0 {
-        return 100
-    }
-    else {
+def activation(s) {
+    if s >= 0 {
+        return 1
+    } else {
         return 0
     }
 }
 
-# Impressão inicial
 print("Entrada:")
 print(input_val)
 print("Desejado:")
 print(output_desire)
 
-# Loop de aprendizado
 while error != 0 {
     iteration = iteration + 1
     print("#### Iteração:")
@@ -35,16 +36,15 @@ while error != 0 {
     print("Peso:")
     print(input_weight)
 
-    sum_val = input_val * input_weight
-    sum_val = sum_val + (bias * bias_weight)
-
+    sum_val = (input_val * input_weight) + (bias * bias_weight)
     output = activation(sum_val)
 
     print("Saída:")
     print(output)
 
-    error = output_desire - (output/100)
-    print("Erro:") print(error)
+    error = output_desire - output
+    print("Erro:")
+    print(error)
 
     if error != 0 {
         input_weight = input_weight + (learning_rate * input_val * error)
