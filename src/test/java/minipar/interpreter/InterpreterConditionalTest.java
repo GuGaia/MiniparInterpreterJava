@@ -42,7 +42,7 @@ class InterpreterConditionalTest {
         """;
 
         Interpreter interpreter = interpretar(code);
-        assertEquals(2, interpreter.getMemory().get("x"));
+        assertEquals(2.0, interpreter.getMemory().get("x"));
     }
 
     @Test
@@ -56,7 +56,7 @@ class InterpreterConditionalTest {
             }
             """;
         Interpreter interpreter = interpretar(code);
-        assertEquals(11, interpreter.getMemory().get("x"));
+        assertEquals(11.0, interpreter.getMemory().get("x"));
     }
 
     @Test
@@ -70,7 +70,7 @@ class InterpreterConditionalTest {
             }
             """;
         Interpreter interpreter = interpretar(code);
-        assertEquals(3, interpreter.getMemory().get("x"));
+        assertEquals(3.0, interpreter.getMemory().get("x"));
     }
 
     @Test
@@ -84,7 +84,7 @@ class InterpreterConditionalTest {
             }
             """;
         Interpreter interpreter = interpretar(code);
-        assertEquals(3, interpreter.getMemory().get("x"));
+        assertEquals(3.0, interpreter.getMemory().get("x"));
     }
 
     @Test

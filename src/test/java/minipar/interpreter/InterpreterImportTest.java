@@ -51,7 +51,7 @@ public class InterpreterImportTest {
 
         Interpreter interpreter = interpretar(codigoPrincipal);
 
-        assertEquals(13, interpreter.getMemory().get("x"));
+        assertEquals(13.0, interpreter.getMemory().get("x"));
     }
 
     @Test

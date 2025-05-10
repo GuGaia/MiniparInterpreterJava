@@ -45,7 +45,7 @@ class InterpreterSocketTest {
         Interpreter interpreter = interpretar(ast);
         Map<String, Object> mem = interpreter.getMemory();
         assertTrue(mem.containsKey("resultado"),  "Variável 'resultado' não encontrada na memória");
-        assertEquals(99, mem.get("resultado"));
+        assertEquals(99.0, mem.get("resultado"));
     }
 
 }

@@ -41,7 +41,7 @@ public class ChannelExecutor {
         if (c == null) throw new RuntimeException("Canal '" + canal + "' não existe");
 
         ASTNode mensagemNode = stmt.getChildren().get(0);
-        int valor = evaluator.evaluate(mensagemNode); // correto agora
+        double valor = evaluator.evaluate(mensagemNode); // correto agora
 
         System.out.println("[DEBUG] Enviando para canal " + canal + " valor: " + valor);
         c.send(String.valueOf(valor));
@@ -57,8 +57,16 @@ public class ChannelExecutor {
         System.out.println("[DEBUG] Recebendo de canal " + canal);
         String recebido = c.receive();
 
-        int valor = Integer.parseInt(recebido);
-        memory.put(variavel, valor);
-        symbolTable.declare(variavel, "int");
+        try {
+            double valor = Double.parseDouble(recebido);
+            memory.put(variavel, valor);
+            if (valor == (int) valor) {
+                symbolTable.declare(variavel, "int");
+            } else {
+                symbolTable.declare(variavel, "float");
+            }
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Valor inválido recebido no canal '" + canal + "': " + recebido);
+        }
     }
 }

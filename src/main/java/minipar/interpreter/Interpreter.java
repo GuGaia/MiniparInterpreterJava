@@ -14,9 +14,10 @@ public class Interpreter {
     private final Map<String, Object> memory = new HashMap<>();
     private final Map<String, Canal> canais = new HashMap<>();
     private final Map<String, ASTNode> functions = new HashMap<>();
+    private final Scanner scanner = new Scanner(System.in);
 
     // Módulos especializados
-    private final ExpressionEvaluator evaluator = new ExpressionEvaluator(memory, null);
+    private final ExpressionEvaluator evaluator = new ExpressionEvaluator(memory, null, scanner);
     private final AssignmentExecutor assignmentExecutor = new AssignmentExecutor(memory, symbolTable, evaluator);
     private final ChannelExecutor channelExecutor = new ChannelExecutor(canais, memory, symbolTable, evaluator);
     private final ControlFlowExecutor controlFlowExecutor = new ControlFlowExecutor(this, evaluator);
@@ -91,23 +92,28 @@ public class Interpreter {
     }
 
     private void executePrint(ASTNode stmt) {
-        ASTNode valorNode = stmt.getChildren().get(0);
-        String tipo = valorNode.getType();
-        String raw = valorNode.getValue();
+        StringBuilder output = new StringBuilder();
 
-        // Se for string literal explícita
-        if (tipo.equals("Valor") && raw.startsWith("\"") && raw.endsWith("\"")) {
-            System.out.println(raw.substring(1, raw.length() - 1)); // remove aspas
-            return;
+        for (ASTNode arg : stmt.getChildren()) {
+            String tipo = arg.getType();
+            String raw = arg.getValue();
+
+            if (tipo.equals("Valor") && raw.startsWith("\"") && raw.endsWith("\"")) {
+                // String literal
+                output.append(raw, 1, raw.length() - 1);
+            } else {
+                try {
+                    double valor = evaluator.evaluate(arg);
+                    output.append(valor);
+                } catch (RuntimeException e) {
+                    // Fallback: tenta exibir literal
+                    output.append(raw);
+                }
+            }
+            output.append(" ");
         }
 
-        try {
-            int valor = evaluator.evaluate(valorNode);
-            System.out.println(valor);
-        } catch (RuntimeException e) {
-            // Fallback: imprime o valor literal bruto
-            System.out.println(raw);
-        }
+        System.out.println(output.toString().trim());
     }
     private void executeImport(ASTNode stmt) {
         String path = stmt.getValue(); // já sem aspas, vindo do parser

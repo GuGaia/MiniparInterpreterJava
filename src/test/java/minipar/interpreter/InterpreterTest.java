@@ -41,8 +41,8 @@ class InterpreterTest {
         Interpreter interpreter = interpretar(code);
         Map<String, Object> memory = interpreter.getMemory();
 
-        assertEquals(10, memory.get("x"));
-        assertEquals(10, memory.get("y"));
+        assertEquals(10.0, memory.get("x"));
+        assertEquals(10.0, memory.get("y"));
     }
 
     @Test
@@ -74,8 +74,8 @@ class InterpreterTest {
         Interpreter interpreter = interpretar(code);
         Map<String, Object> memory = interpreter.getMemory();
 
-        assertEquals(1, memory.get("x"));
-        assertEquals(2, memory.get("y"));
+        assertEquals(1.0, memory.get("x"));
+        assertEquals(2.0, memory.get("y"));
     }
 
 

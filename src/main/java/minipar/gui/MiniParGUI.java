@@ -1,8 +1,9 @@
 package minipar.gui;
 
 import minipar.lexer.*;
+import minipar.lexer.Token;
 import minipar.parser.*;
-import minipar.semantic.SemanticAnalyzer;
+import minipar.semantic.*;
 import minipar.interpreter.*;
 
 import javax.swing.*;
@@ -11,53 +12,123 @@ import java.io.*;
 import java.nio.file.Files;
 import java.util.List;
 
+import org.fife.ui.rsyntaxtextarea.*;
+import org.fife.ui.rtextarea.*;
+import com.formdev.flatlaf.FlatDarkLaf;
+
 public class MiniParGUI extends JFrame {
 
+    private RSyntaxTextArea codeArea;
     private JTextArea astArea;
     private JTextArea outputArea;
-    private String codigoFonte = "";
+    private File currentFile = null;
 
     public MiniParGUI() {
+        // Aplicar o tema FlatLaf Dark
+        try {
+            UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+
         setTitle("MiniPar - Interpretador Visual");
-        setSize(800, 600);
+        setSize(1000, 700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
-        JButton btnAbrir = new JButton("Abrir Código");
-        JButton btnExecutar = new JButton("Executar");
+        // Editor de código com destaque de sintaxe
+        codeArea = new RSyntaxTextArea(20, 60);
+        codeArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+        codeArea.setCodeFoldingEnabled(true);
+        codeArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        RTextScrollPane codeScrollPane = new RTextScrollPane(codeArea);
 
-        astArea = new JTextArea();
-        astArea.setEditable(false);
-        outputArea = new JTextArea();
-        outputArea.setEditable(false);
+        // Áreas de AST e saída
+        astArea = criarTextArea(false);
+        outputArea = criarTextArea(false);
 
-        JScrollPane astScroll = new JScrollPane(astArea);
-        JScrollPane outputScroll = new JScrollPane(outputArea);
+        // Painéis organizados em abas
+        JTabbedPane abas = new JTabbedPane();
+        abas.addTab("Código Fonte", codeScrollPane);
+        abas.addTab("AST (Árvore Sintática)", new JScrollPane(astArea));
+        abas.addTab("Saída do Programa", new JScrollPane(outputArea));
+        add(abas, BorderLayout.CENTER);
 
-        JPanel botoes = new JPanel();
-        botoes.add(btnAbrir);
-        botoes.add(btnExecutar);
+        // Menus
+        setJMenuBar(criarMenuBar());
 
-        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, astScroll, outputScroll);
-        split.setDividerLocation(300);
+        setVisible(true);
+    }
 
-        add(botoes, BorderLayout.NORTH);
-        add(split, BorderLayout.CENTER);
+    private JTextArea criarTextArea(boolean editavel) {
+        JTextArea area = new JTextArea();
+        area.setFont(new Font("Consolas", Font.PLAIN, 14));
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setEditable(editavel);
+        return area;
+    }
 
-        btnAbrir.addActionListener(e -> carregarCodigo());
-        btnExecutar.addActionListener(e -> executarCodigo());
+    private JMenuBar criarMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu menuArquivo = new JMenu("Arquivo");
+        JMenuItem abrir = new JMenuItem("Abrir");
+        JMenuItem salvar = new JMenuItem("Salvar como");
+        JMenuItem sair = new JMenuItem("Sair");
+
+        abrir.addActionListener(e -> carregarCodigo());
+        salvar.addActionListener(e -> salvarCodigo());
+        sair.addActionListener(e -> System.exit(0));
+
+        menuArquivo.add(abrir);
+        menuArquivo.add(salvar);
+        menuArquivo.addSeparator();
+        menuArquivo.add(sair);
+
+        JMenu menuExecutar = new JMenu("Executar");
+        JMenuItem executar = new JMenuItem("Executar Código");
+        executar.addActionListener(e -> executarCodigo());
+        menuExecutar.add(executar);
+
+        JMenu menuAjuda = new JMenu("Ajuda");
+        JMenuItem sobre = new JMenuItem("Sobre");
+        sobre.addActionListener(e -> JOptionPane.showMessageDialog(this,
+                "MiniPar IDE\nDesenvolvido em Java\nVersão 1.0", "Sobre", JOptionPane.INFORMATION_MESSAGE));
+        menuAjuda.add(sobre);
+
+        menuBar.add(menuArquivo);
+        menuBar.add(menuExecutar);
+        menuBar.add(menuAjuda);
+
+        return menuBar;
     }
 
     private void carregarCodigo() {
         JFileChooser chooser = new JFileChooser();
         int result = chooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
-            File file = chooser.getSelectedFile();
+            currentFile = chooser.getSelectedFile();
             try {
-                codigoFonte = Files.readString(file.toPath());
-                JOptionPane.showMessageDialog(this, "Código carregado com sucesso!");
+                String codigoFonte = Files.readString(currentFile.toPath());
+                codeArea.setText(codigoFonte);
+                setTitle("MiniPar - " + currentFile.getName());
             } catch (IOException ex) {
                 mostrarErro("Erro ao ler o arquivo: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void salvarCodigo() {
+        JFileChooser chooser = new JFileChooser();
+        if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            try {
+                Files.writeString(file.toPath(), codeArea.getText());
+                JOptionPane.showMessageDialog(this, "Arquivo salvo com sucesso.");
+            } catch (IOException ex) {
+                mostrarErro("Erro ao salvar o arquivo: " + ex.getMessage());
             }
         }
     }
@@ -65,8 +136,14 @@ public class MiniParGUI extends JFrame {
     private void executarCodigo() {
         astArea.setText("");
         outputArea.setText("");
+        String codigoFonte = codeArea.getText();
+
+        if (codigoFonte.isBlank()) {
+            mostrarErro("Nenhum código fornecido.");
+            return;
+        }
+
         try {
-            // Etapas de compilação e execução
             Lexer lexer = new Lexer(codigoFonte);
             List<Token> tokens = lexer.tokenize();
 
@@ -77,21 +154,18 @@ public class MiniParGUI extends JFrame {
             SemanticAnalyzer sem = new SemanticAnalyzer();
             sem.analyze(ast);
 
-            // Redirecionar saída para capturar o print
             PrintStream originalOut = System.out;
             ByteArrayOutputStream outputCapture = new ByteArrayOutputStream();
             System.setOut(new PrintStream(outputCapture));
 
-            // Criar e configurar interpretador
             Interpreter interpreter = new Interpreter();
-            interpreter.setupFunctionEvaluation();  // importante para chamadas de função e `import`
             interpreter.execute(ast);
 
             System.setOut(originalOut);
             outputArea.setText(outputCapture.toString());
 
         } catch (Exception e) {
-            mostrarErro("Erro: " + e.getMessage());
+            mostrarErro("Erro ao executar: " + e.getMessage());
         }
     }
 
@@ -113,6 +187,6 @@ public class MiniParGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new MiniParGUI().setVisible(true));
+        SwingUtilities.invokeLater(MiniParGUI::new);
     }
 }

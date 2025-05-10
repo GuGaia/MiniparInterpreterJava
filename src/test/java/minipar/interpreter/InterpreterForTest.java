@@ -38,7 +38,7 @@ public class InterpreterForTest{
             }
             """;
         Interpreter interpreter = interpretar(codigo);
-        assertEquals(6, interpreter.getMemory().get("soma")); // 1 + 2 + 3
+        assertEquals(6.0, interpreter.getMemory().get("soma")); // 1 + 2 + 3
     }
 
     @Test
@@ -52,7 +52,7 @@ public class InterpreterForTest{
             }
             """;
         Interpreter interpreter = interpretar(codigo);
-        assertEquals(0, interpreter.getMemory().get("soma")); // não executa nenhuma vez
+        assertEquals(0.0, interpreter.getMemory().get("soma")); // não executa nenhuma vez
     }
 
     @Test
@@ -67,7 +67,7 @@ public class InterpreterForTest{
             }
             """;
         Interpreter interpreter = interpretar(codigo);
-        assertEquals(10, interpreter.getMemory().get("soma")); // 1 + 2 + 3 + 4
+        assertEquals(10.0, interpreter.getMemory().get("soma")); // 1 + 2 + 3 + 4
     }
 
     @Test

@@ -46,6 +46,12 @@ public class ExpressionParser {
             parser.expect(TokenType.DELIMITER, ")");
             return expr;
         }
+        if (token.getType() == TokenType.KEYWORD && token.getValue().equals("input")) {
+            parser.consume(); // consome 'input'
+            parser.expect(TokenType.DELIMITER, "(");
+            parser.expect(TokenType.DELIMITER, ")");
+            return new ASTNode("input", "");
+        }
 
          if (token.getType() == TokenType.IDENTIFIER) {
             String name = parser.consume().getValue();

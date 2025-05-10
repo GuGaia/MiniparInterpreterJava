@@ -1,8 +1,8 @@
 package minipar.exceptions;
 
 public class ReturnException extends RuntimeException {
-    public final int valor;
-    public ReturnException(int valor) {
+    public final double valor;
+    public ReturnException(double valor) {
         this.valor = valor;
     }
 }

@@ -27,7 +27,7 @@ public class AssignmentExecutor {
         Object value;
 
         if (expr.getType().equals("Lista")) {
-            List<Integer> lista = new ArrayList<>();
+            List<Double> lista = new ArrayList<>();
             for (ASTNode item : expr.getChildren()) {
                 lista.add(evaluator.evaluate(item));
             }
@@ -46,8 +46,8 @@ public class AssignmentExecutor {
 
     public void executeIndexAssignment(ASTNode stmt) {
         String nome = stmt.getValue();
-        int index = evaluator.evaluate(stmt.getChildren().get(0));
-        int valor = evaluator.evaluate(stmt.getChildren().get(1));
+        double index = evaluator.evaluate(stmt.getChildren().get(0));
+        double valor = evaluator.evaluate(stmt.getChildren().get(1));
 
         if (!memory.containsKey(nome)) throw new RuntimeException("Lista não declarada: " + nome);
 
@@ -56,12 +56,13 @@ public class AssignmentExecutor {
             throw new RuntimeException("Variável '" + nome + "' não é uma lista");
         }
         @SuppressWarnings("unchecked")
-        List<Integer> lista = (List<Integer>) objeto;
+        List<Double> lista = (List<Double>) objeto;
 
-        if (index < 0 || index >= lista.size()) {
+        int i = (int) index;
+        if (i < 0 || i >= lista.size()) {
             throw new RuntimeException("Índice fora dos limites da lista");
         }
 
-        lista.set(index, valor);
+        lista.set(i, valor);
     }
 }

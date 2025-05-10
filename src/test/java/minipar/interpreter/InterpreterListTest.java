@@ -43,10 +43,10 @@ public class InterpreterListTest {
         assertTrue(x instanceof List<?>);
 
         @SuppressWarnings("unchecked")
-        List<Integer> lista = (List<Integer>) x;
+        List<Double> lista = (List<Double>) x;
 
-        assertEquals(1, lista.get(0));
-        assertEquals(3, lista.get(2));
+        assertEquals(1.0, lista.get(0));
+        assertEquals(3.0, lista.get(2));
     }
 
     @Test
@@ -65,9 +65,9 @@ public class InterpreterListTest {
 
         List<?> lista = (List<?>) x;
 
-        assertEquals(10, lista.get(0));
-        assertEquals(99, lista.get(1)); // valor alterado
-        assertEquals(30, lista.get(2));
+        assertEquals(10.0, lista.get(0));
+        assertEquals(99.0, lista.get(1)); // valor alterado
+        assertEquals(30.0, lista.get(2));
     }
 
     @Test
@@ -86,12 +86,12 @@ public class InterpreterListTest {
         assertTrue(x instanceof List<?>);
 
         @SuppressWarnings("unchecked")
-        List<Integer> lista = (List<Integer>) x;
+        List<Double> lista = (List<Double>) x;
 
-        assertEquals(3, lista.size());
-        assertEquals(5, lista.get(0));
-        assertEquals(10, lista.get(1));
-        assertEquals(15, lista.get(2));
+        assertEquals(3.0, lista.size());
+        assertEquals(5.0, lista.get(0));
+        assertEquals(10.0, lista.get(1));
+        assertEquals(15.0, lista.get(2));
     }
 
     @Test

@@ -40,8 +40,8 @@ public class ControlFlowExecutor {
             throw new RuntimeException("Condição inválida");
         }
 
-        int left = evaluator.evaluate(node.getChildren().get(0));
-        int right = evaluator.evaluate(node.getChildren().get(1));
+        double left = evaluator.evaluate(node.getChildren().get(0));
+        double right = evaluator.evaluate(node.getChildren().get(1));
 
         return switch (node.getValue()) {
             case "==" -> left == right;
@@ -64,10 +64,10 @@ public class ControlFlowExecutor {
         ASTNode fimNode = forNode.getChildren().get(1);
         ASTNode corpo = forNode.getChildren().get(2);
 
-        int inicio = evaluator.evaluate(inicioNode);
-        int fim = evaluator.evaluate(fimNode);
+        double inicio = evaluator.evaluate(inicioNode);
+        double fim = evaluator.evaluate(fimNode);
 
-        for (int i = inicio; i <= fim; i++) {
+        for (int i = (int) inicio; i <= fim; i++) {
             interpreter.getMemory().put(varName, i);
             if (!interpreter.getSymbolTable().isDeclared(varName)) {
                 interpreter.getSymbolTable().declare(varName, "int");
